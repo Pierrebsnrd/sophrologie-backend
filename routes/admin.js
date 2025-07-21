@@ -1,7 +1,7 @@
 var express = require('express');
 var router = express.Router();
 const jwt = require('jsonwebtoken');
-const Admin = require('../models/Admin');
+const Admin = require('../models/admin');
 const Rdv = require('../models/rdv');
 const authMiddleware = require('../middleware/auth');
 const { sendStatusUpdate } = require('../utils/emailService');
