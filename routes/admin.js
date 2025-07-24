@@ -3,6 +3,7 @@ var router = express.Router();
 const jwt = require('jsonwebtoken');
 const Admin = require('../models/admin');
 const Rdv = require('../models/rdv');
+const Testimonial = require('../models/temoignage');
 const authMiddleware = require('../middleware/auth');
 const { sendStatusUpdate } = require('../utils/emailService');
 
@@ -85,5 +86,35 @@ router.patch('/rdv/:id/status', authMiddleware, async (req, res) => {
     res.status(500).json({ error: 'Erreur serveur' });
   }
 });
+
+// Récupérer tous les témoignages (admin uniquement)
+router.get('/temoignages', authMiddleware, async (req, res) => {
+  try {
+    const temoignages = await Testimonial.find().sort({ createdAt: -1 });
+    res.json(temoignages);
+  } catch (error) {
+    console.error('Erreur récupération témoignages:', error);
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
+});
+
+// Changer le statut d’un témoignage
+router.patch('/temoignages/:id/status', authMiddleware, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status } = req.body;
+
+    if (!['validated', 'rejected'].includes(status)) {
+      return res.status(400).json({ error: 'Statut invalide' });
+    }
+
+    const temoignage = await Testimonial.findByIdAndUpdate(id, { status }, { new: true });
+    res.json(temoignage);
+  } catch (error) {
+    console.error('Erreur maj statut témoignage:', error);
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
+});
+
 
 module.exports = router;

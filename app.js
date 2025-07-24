@@ -13,6 +13,7 @@ var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
 const rdvRoutes = require('./routes/rdv');
 const adminRoutes = require('./routes/admin');
+const temoignageRoutes = require('./routes/temoignage');
 
 var app = express();
 // Sécurité
@@ -37,5 +38,6 @@ app.use('/', indexRouter);
 app.use('/users', usersRouter);
 app.use('/rdv', rdvRoutes);
 app.use('/admin', adminRoutes);
+app.use('/temoignage', temoignageRoutes);
 
 module.exports = app;
