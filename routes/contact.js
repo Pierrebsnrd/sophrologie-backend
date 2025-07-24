@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { sendContactMessage } = require('../utils/emailService');
+const ContactMessage = require('../models/contactMessage');
 
 router.post('/', async (req, res) => {
   try {
@@ -11,6 +12,7 @@ router.post('/', async (req, res) => {
     }
 
     await sendContactMessage({ name, email, message });
+    await ContactMessage.create({ name, email, message }); // <-- Ajout en BDD
     res.status(200).json({ success: true });
   } catch (err) {
     console.error('Erreur envoi message contact:', err);

@@ -4,6 +4,7 @@ const jwt = require('jsonwebtoken');
 const Admin = require('../models/admin');
 const Rdv = require('../models/rdv');
 const Testimonial = require('../models/temoignage');
+const ContactMessage = require('../models/contactMessage');
 const authMiddleware = require('../middleware/auth');
 const { sendStatusUpdate } = require('../utils/emailService');
 
@@ -112,6 +113,16 @@ router.patch('/temoignages/:id/status', authMiddleware, async (req, res) => {
     res.json(temoignage);
   } catch (error) {
     console.error('Erreur maj statut témoignage:', error);
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
+});
+
+// Récupérer tous les messages de contact (admin uniquement)
+router.get('/contact-messages', authMiddleware, async (req, res) => {
+  try {
+    const messages = await ContactMessage.find().sort({ createdAt: -1 });
+    res.json(messages);
+  } catch (error) {
     res.status(500).json({ error: 'Erreur serveur' });
   }
 });
