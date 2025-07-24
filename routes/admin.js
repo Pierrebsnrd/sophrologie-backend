@@ -159,5 +159,19 @@ router.delete('/contact-messages/:id', authMiddleware, async (req, res) => {
   }
 });
 
+// Supprimer un témoignage
+router.delete('/temoignages/:id', authMiddleware, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const deleted = await Testimonial.findByIdAndDelete(id);
+    if (!deleted) {
+      return res.status(404).json({ error: 'Témoignage non trouvé' });
+    }
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
+});
+
 
 module.exports = router;
