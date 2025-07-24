@@ -127,5 +127,23 @@ router.get('/contact-messages', authMiddleware, async (req, res) => {
   }
 });
 
+// Mettre à jour le statut d'un message de contact (répondu/non répondu)
+router.patch('/contact-messages/:id/answered', authMiddleware, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const message = await ContactMessage.findByIdAndUpdate(
+      id,
+      { answered: true },
+      { new: true }
+    );
+    if (!message) {
+      return res.status(404).json({ error: 'Message non trouvé' });
+    }
+    res.json({ success: true, message });
+  } catch (error) {
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
+});
+
 
 module.exports = router;
