@@ -145,5 +145,19 @@ router.patch('/contact-messages/:id/answered', authMiddleware, async (req, res) 
   }
 });
 
+// Supprimer un message de contact
+router.delete('/contact-messages/:id', authMiddleware, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const deleted = await ContactMessage.findByIdAndDelete(id);
+    if (!deleted) {
+      return res.status(404).json({ error: 'Message non trouvé' });
+    }
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
+});
+
 
 module.exports = router;
