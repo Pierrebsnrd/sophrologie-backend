@@ -10,7 +10,7 @@ const transporter = nodemailer.createTransport({
 
 const sendRdvNotification = async (rdvData) => {
   const { name, email, date, message } = rdvData;
-  
+
   // Email à l'admin
   const adminMailOptions = {
     from: process.env.EMAIL_USER,
@@ -65,10 +65,10 @@ const sendStatusUpdate = async (rdvData, status) => {
         <h2 style="color: ${statusColor};">Rendez-vous ${statusText}</h2>
         <p>Bonjour ${name},</p>
         <p>Votre rendez-vous du <strong>${new Date(date).toLocaleString('fr-FR')}</strong> a été <strong>${statusText}</strong>.</p>
-        ${status === 'confirmed' ? 
-          '<p>Nous vous attendons à cette date. N\'hésitez pas à nous contacter si vous avez des questions.</p>' : 
-          '<p>N\'hésitez pas à reprendre un nouveau rendez-vous si vous le souhaitez.</p>'
-        }
+        ${status === 'confirmed' ?
+        '<p>Nous vous attendons à cette date. N\'hésitez pas à nous contacter si vous avez des questions.</p>' :
+        '<p>N\'hésitez pas à reprendre un nouveau rendez-vous si vous le souhaitez.</p>'
+      }
         <p>Cordialement,<br>Cabinet de Sophrologie</p>
       </div>
     `,
@@ -77,6 +77,7 @@ const sendStatusUpdate = async (rdvData, status) => {
   await transporter.sendMail(mailOptions);
 };
 
+// Envoi de notification pour un nouveau témoignage à l'admin
 const sendNewTestimonialNotification = async (temoignageData) => {
   const { name, message } = temoignageData;
 
@@ -100,8 +101,31 @@ const sendNewTestimonialNotification = async (temoignageData) => {
   await transporter.sendMail(mailOptions);
 }
 
+const sendContactMessage = async ({ name, email, message }) => {
+  const mailOptions = {
+    from: process.env.EMAIL_USER,
+    to: process.env.ADMIN_EMAIL,
+    replyTo: email,
+    subject: '📬 Nouveau message via le formulaire de contact',
+    html: `
+    <div style="font-family: Arial, sans-serif; max-width: 600px;">
+      <h2 style="color: #2c3e50;">Message du site web</h2>
+      <div style="background: #f8f9fa; padding: 20px; border-radius: 8px;">
+        <p><strong>Nom :</strong> ${name}</p>
+        <p><strong>Email :</strong> ${email}</p>
+        <p><strong>Message :</strong></p>
+        <p>${message.replace(/\n/g, '<br>')}</p>
+      </div>
+    </div>
+  `,
+  };
+
+  await transporter.sendMail(mailOptions);
+};
+
 module.exports = {
   sendRdvNotification,
   sendStatusUpdate,
-  sendNewTestimonialNotification
+  sendNewTestimonialNotification,
+  sendContactMessage
 };

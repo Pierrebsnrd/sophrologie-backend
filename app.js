@@ -14,6 +14,7 @@ var usersRouter = require('./routes/users');
 const rdvRoutes = require('./routes/rdv');
 const adminRoutes = require('./routes/admin');
 const temoignageRoutes = require('./routes/temoignage');
+const contactRoutes = require('./routes/contact');
 
 var app = express();
 // Sécurité
@@ -39,5 +40,7 @@ app.use('/users', usersRouter);
 app.use('/rdv', rdvRoutes);
 app.use('/admin', adminRoutes);
 app.use('/temoignage', temoignageRoutes);
+app.use('/contact', contactRoutes);
+
 
 module.exports = app;
