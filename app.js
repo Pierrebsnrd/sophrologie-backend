@@ -11,7 +11,6 @@ var logger = require('morgan');
 
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
-const rdvRoutes = require('./routes/rdv');
 const adminRoutes = require('./routes/admin');
 const temoignageRoutes = require('./routes/temoignage');
 const contactRoutes = require('./routes/contact');
@@ -37,7 +36,6 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
-app.use('/rdv', rdvRoutes);
 app.use('/admin', adminRoutes);
 app.use('/temoignage', temoignageRoutes);
 app.use('/contact', contactRoutes);
