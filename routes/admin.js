@@ -9,6 +9,7 @@ const authMiddleware = require('../middleware/auth');
 // Connexion admin
 router.post('/login', async (req, res) => {
 
+  
   try {
     const { email, password } = req.body;
 
