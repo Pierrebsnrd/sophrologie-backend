@@ -16,11 +16,13 @@ const temoignageRoutes = require('./routes/temoignage');
 const contactRoutes = require('./routes/contact');
 
 var app = express();
+
 // Sécurité
 app.use(helmet());
 const cors = require('cors');
 app.use(cors());
 
+app.set('trust proxy', true);
 // Rate limiting
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
