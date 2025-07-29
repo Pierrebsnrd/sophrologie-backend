@@ -2,17 +2,16 @@ var express = require('express');
 var router = express.Router();
 const jwt = require('jsonwebtoken');
 const Admin = require('../models/admin');
-const Testimonial = require('../models/temoignage');
+const Temoignage = require('../models/temoignage'); // ✅ Nom correct
 const ContactMessage = require('../models/contactMessage');
 const authMiddleware = require('../middleware/auth');
 
 // Connexion admin
 router.post('/login', async (req, res) => {
-
-  
   try {
     const { email, password } = req.body;
 
+    // Validation des champs requis
     if (!email || !password) {
       return res.status(400).json({ error: 'Email et mot de passe requis' });
     }
@@ -22,9 +21,15 @@ router.post('/login', async (req, res) => {
       return res.status(401).json({ error: 'Identifiants incorrects' });
     }
 
-    const isValidPassword = await admin.comparePassword(password);
-    if (!isValidPassword) {
-      return res.status(401).json({ error: 'Identifiants incorrects' });
+    // Vérification avec gestion d'erreur
+    try {
+      const isValidPassword = await admin.comparePassword(password);
+      if (!isValidPassword) {
+        return res.status(401).json({ error: 'Identifiants incorrects' });
+      }
+    } catch (compareError) {
+      console.error('Erreur comparePassword:', compareError);
+      return res.status(500).json({ error: 'Erreur lors de la vérification du mot de passe' });
     }
 
     const token = jwt.sign(
@@ -47,7 +52,7 @@ router.post('/login', async (req, res) => {
 // Récupérer tous les témoignages (admin uniquement)
 router.get('/temoignages', authMiddleware, async (req, res) => {
   try {
-    const temoignages = await Testimonial.find().sort({ createdAt: -1 });
+    const temoignages = await Temoignage.find().sort({ createdAt: -1 }); // ✅ Temoignage
     res.json(temoignages);
   } catch (error) {
     console.error('Erreur récupération témoignages:', error);
@@ -55,7 +60,7 @@ router.get('/temoignages', authMiddleware, async (req, res) => {
   }
 });
 
-// Changer le statut d’un témoignage
+// Changer le statut d'un témoignage
 router.patch('/temoignages/:id/status', authMiddleware, async (req, res) => {
   try {
     const { id } = req.params;
@@ -65,7 +70,10 @@ router.patch('/temoignages/:id/status', authMiddleware, async (req, res) => {
       return res.status(400).json({ error: 'Statut invalide' });
     }
 
-    const temoignage = await Testimonial.findByIdAndUpdate(id, { status }, { new: true });
+    const temoignage = await Temoignage.findByIdAndUpdate(id, { status }, { new: true }); // ✅ Temoignage
+    if (!temoignage) {
+      return res.status(404).json({ error: 'Témoignage non trouvé' });
+    }
     res.json(temoignage);
   } catch (error) {
     console.error('Erreur maj statut témoignage:', error);
@@ -119,7 +127,7 @@ router.delete('/contact-messages/:id', authMiddleware, async (req, res) => {
 router.delete('/temoignages/:id', authMiddleware, async (req, res) => {
   try {
     const { id } = req.params;
-    const deleted = await Testimonial.findByIdAndDelete(id);
+    const deleted = await Temoignage.findByIdAndDelete(id); // ✅ Temoignage
     if (!deleted) {
       return res.status(404).json({ error: 'Témoignage non trouvé' });
     }
@@ -128,6 +136,5 @@ router.delete('/temoignages/:id', authMiddleware, async (req, res) => {
     res.status(500).json({ error: 'Erreur serveur' });
   }
 });
-
 
 module.exports = router;

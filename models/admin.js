@@ -19,8 +19,16 @@ const adminSchema = new mongoose.Schema({
   }
 });
 
-// Méthode pour vérifier le mot de passe
+// Méthode pour vérifier le mot de passe avec validation
 adminSchema.methods.comparePassword = async function(password) {
+  // Validation des paramètres
+  if (!password) {
+    throw new Error('Le mot de passe est requis');
+  }
+  if (!this.passwordHash) {
+    throw new Error('Hash du mot de passe manquant');
+  }
+  
   return bcrypt.compare(password, this.passwordHash);
 };
 
