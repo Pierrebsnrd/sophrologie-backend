@@ -13,6 +13,14 @@ const adminSchema = new mongoose.Schema({
     type: String,
     required: true
   },
+  lastLogin: {
+    type: Date,
+    default: null
+  },
+  loginCount: {
+    type: Number,
+    default: 0
+  },
   createdAt: {
     type: Date,
     default: Date.now
@@ -23,13 +31,23 @@ const adminSchema = new mongoose.Schema({
 adminSchema.methods.comparePassword = async function(password) {
   // Validation des paramètres
   if (!password) {
-    throw new Error('Le mot de passe est requis');
-  }
-  if (!this.passwordHash) {
-    throw new Error('Hash du mot de passe manquant');
+    console.error('❌ Mot de passe manquant pour la comparaison');
+    return false;
   }
   
-  return bcrypt.compare(password, this.passwordHash);
+  // Vérifier si passwordHash existe
+  if (!this.passwordHash) {
+    console.error('❌ Hash du mot de passe manquant pour l\'admin:', this.email);
+    console.error('📋 Champs disponibles:', Object.keys(this.toObject()));
+    return false;
+  }
+  
+  try {
+    return await bcrypt.compare(password, this.passwordHash);
+  } catch (error) {
+    console.error('❌ Erreur lors de la comparaison bcrypt:', error);
+    return false;
+  }
 };
 
 const Admin = mongoose.model('Admin', adminSchema);

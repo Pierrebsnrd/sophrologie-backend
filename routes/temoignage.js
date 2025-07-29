@@ -3,33 +3,92 @@ const router = express.Router();
 const Temoignage = require('../models/temoignage');
 const { sendNewTestimonialNotification } = require('../utils/emailService');
 
-
 // Poster un témoignage
 router.post('/', async (req, res) => {
   try {
-    console.log("Corps reçu :", req.body); // ← ajoute ceci
+    console.log("Corps reçu :", req.body);
     const { name, message } = req.body;
 
+    // Validation des champs requis
     if (!name || !message) {
-      return res.status(400).json({ error: 'Nom et message requis' });
+      return res.status(400).json({ 
+        success: false,
+        error: 'Nom et message requis' 
+      });
     }
 
-    const temoignage = await Temoignage.create({ name, message });
-    await sendNewTestimonialNotification(temoignage);
-    res.status(201).json(temoignage);
+    // Validation de longueur
+    if (name.trim().length < 2) {
+      return res.status(400).json({ 
+        success: false,
+        error: 'Le nom doit contenir au moins 2 caractères' 
+      });
+    }
+
+    if (message.trim().length < 10) {
+      return res.status(400).json({ 
+        success: false,
+        error: 'Le message doit contenir au moins 10 caractères' 
+      });
+    }
+
+    // Créer le témoignage
+    const temoignage = await Temoignage.create({ 
+      name: name.trim(), 
+      message: message.trim() 
+    });
+
+    console.log('✅ Témoignage créé:', temoignage);
+
+    // Envoyer notification email (avec gestion d'erreur)
+    try {
+      await sendNewTestimonialNotification(temoignage);
+      console.log('✅ Notification email envoyée');
+    } catch (emailError) {
+      console.error('⚠️ Erreur envoi email (témoignage sauvé):', emailError);
+      // Le témoignage est quand même sauvé même si l'email échoue
+    }
+
+    res.status(201).json({
+      success: true,
+      message: 'Merci pour votre témoignage ! Il sera publié après validation.',
+      data: temoignage
+    });
+
   } catch (error) {
-    console.error('Erreur ajout témoignage:', error);
-    res.status(500).json({ error: 'Erreur serveur' });
+    console.error('❌ Erreur ajout témoignage:', error);
+    res.status(500).json({ 
+      success: false,
+      error: 'Erreur serveur lors de l\'ajout du témoignage' 
+    });
   }
 });
 
 // Récupérer uniquement les témoignages validés
 router.get('/', async (req, res) => {
   try {
-    const temoignage = await Temoignage.find({ status: 'validated' }).sort({ createdAt: -1 });
-    res.json(temoignage);
+    console.log('🔍 Récupération des témoignages validés...');
+    
+    const temoignages = await Temoignage.find({ status: 'validated' })
+      .sort({ createdAt: -1 })
+      .lean(); // Optimisation
+
+    console.log(`✅ ${temoignages.length} témoignages récupérés`);
+
+    // Structure de réponse cohérente avec le frontend
+    res.json({
+      success: true,
+      data: {
+        temoignages: temoignages
+      }
+    });
+
   } catch (error) {
-    res.status(500).json({ error: 'Erreur serveur' });
+    console.error('❌ Erreur récupération témoignages:', error);
+    res.status(500).json({ 
+      success: false,
+      error: 'Erreur serveur lors de la récupération des témoignages' 
+    });
   }
 });
 
