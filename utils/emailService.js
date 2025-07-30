@@ -1,6 +1,6 @@
 const nodemailer = require('nodemailer');
 
-const transporter = nodemailer.createTransporter({
+const transporter = nodemailer.createTransport({
   service: 'gmail',
   auth: {
     user: process.env.EMAIL_USER,
@@ -117,6 +117,13 @@ const sendNewTestimonialNotification = async (temoignageData) => {
             🔗 Connectez-vous à votre interface d'administration pour valider ce témoignage
         </div>
     </div>
+
+    <div style="background: #fff3cd; border: 1px solid #ffeaa7; border-radius: 8px; padding: 15px; margin: 20px 0;">
+        <p style="margin: 0; color: #856404; font-size: 14px;">
+            💡 <strong>Rappel :</strong> Les témoignages validés renforcent la confiance de vos futurs patients. 
+            Prenez le temps de les lire attentivement avant validation.
+        </p>
+    </div>
   `;
 
   const mailOptions = {
@@ -199,6 +206,7 @@ const sendContactMessage = async ({ name, email, message }) => {
         <h4 style="color: #0c5460; margin: 0 0 10px 0;">⚡ Actions rapides :</h4>
         <p style="margin: 5px 0; color: #0c5460;">
             • <strong>Répondre :</strong> <a href="mailto:${email}" style="color: #0c5460;">Cliquez ici pour répondre directement</a><br>
+            • <strong>Délai recommandé :</strong> Réponse sous 24h maximum
         </p>
     </div>
   `;
@@ -236,7 +244,7 @@ const sendAutoResponse = async (name, email) => {
         <h3 style="color: ${emailStyles.primaryColor}; margin: 0 0 15px 0; font-size: 20px;">Message bien reçu !</h3>
         <p style="color: ${emailStyles.textColor}; line-height: 1.6; margin: 0;">
             Je vous remercie pour votre prise de contact. Votre message 
-            a été transmis et je m'engage à vous répondre dans les <strong>24-48 heures</strong>.
+            a été transmis et je m'engage à vous répondre dans les <strong>24 heures</strong>.
         </p>
     </div>
 
@@ -244,13 +252,20 @@ const sendAutoResponse = async (name, email) => {
         <h4 style="color: ${emailStyles.primaryColor}; margin: 0 0 15px 0; font-size: 18px;">🧘‍♀️ En attendant ma réponse...</h4>
         <ul style="color: ${emailStyles.textColor}; line-height: 1.8; padding-left: 20px;">
             <li>Consultez mon site web pour découvrir mes services de sophrologie</li>
+            <li>Suivez-moi sur les réseaux sociaux pour des conseils bien-être</li>
             <li>En cas d'urgence, n'hésitez pas à me contacter par téléphone</li>
         </ul>
+    </div>
+
+    <div style="text-align: center; margin: 30px 0;">
+        <p style="color: ${emailStyles.secondaryColor}; font-style: italic; margin: 0;">
+            "La sophrologie vous accompagne vers un mieux-être durable"
+        </p>
     </div>
   `;
 
   const clientMailOptions = {
-    from: `"Cabinet de Sophrologie - Stéphanie Habert" <${process.env.EMAIL_USER}>`,
+    from: `"Cabinet de Sophrologie" <${process.env.EMAIL_USER}>`,
     to: email,
     subject: '🌱 Confirmation de réception - Cabinet de Sophrologie',
     html: getBaseTemplate(content, 'Confirmation de votre message')
