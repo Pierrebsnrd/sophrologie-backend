@@ -42,6 +42,7 @@ router.post('/', async (req, res) => {
 
     // Envoyer notification email (avec gestion d'erreur)
     try {
+      // Passer les données avec createdAt pour l'email
       await sendNewTestimonialNotification(temoignage);
       console.log('✅ Notification email envoyée');
     } catch (emailError) {
