@@ -24,13 +24,6 @@ router.post('/login', async (req, res) => {
       return res.status(401).json({ error: 'Identifiants incorrects' });
     }
 
-    console.log('👤 Admin trouvé:', {
-      id: admin._id,
-      email: admin.email,
-      hasPasswordHash: !!admin.passwordHash,
-      passwordHashLength: admin.passwordHash?.length
-    });
-
     // Vérification avec gestion d'erreur
     const isValidPassword = await admin.comparePassword(password);
     if (!isValidPassword) {
@@ -204,7 +197,6 @@ router.get('/profile', authMiddleware, async (req, res) => {
   try {
     console.log('🔍 Récupération profil pour admin ID:', req.admin._id);
     
-    // CORRECTION: Utiliser req.admin._id au lieu de req.admin.adminId
     const admin = await Admin.findById(req.admin._id).select('-passwordHash');
     
     if (!admin) {
@@ -220,15 +212,18 @@ router.get('/profile', authMiddleware, async (req, res) => {
       loginCount: admin.loginCount
     });
 
+    // CORRECTION: S'assurer que createdAt existe toujours
+    const profileData = {
+      id: admin._id,
+      email: admin.email,
+      createdAt: admin.createdAt || new Date(), // Fallback si manquant
+      lastLogin: admin.lastLogin || null,
+      loginCount: admin.loginCount || 0
+    };
+
     res.json({
       success: true,
-      data: {
-        id: admin._id,
-        email: admin.email,
-        createdAt: admin.createdAt,
-        lastLogin: admin.lastLogin || null,
-        loginCount: admin.loginCount || 0
-      }
+      data: profileData
     });
   } catch (error) {
     console.error('❌ Erreur récupération profil admin:', error);
