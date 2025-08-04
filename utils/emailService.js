@@ -52,13 +52,10 @@ const getBaseTemplate = (content, subtitle = '') => {
                     <strong style="color: ${emailStyles.primaryColor};">Votre Cabinet de Sophrologie</strong>
                 </div>
                 <div style="margin-bottom: 10px;">
-                    📍 [Votre adresse] • 📞 [Votre téléphone] • 📧 [Votre email]
+                    📍 Villepreux • 📞 06 11 42 17 65 • 📧 stephaniehabert.sophrologue@gmail.com
                 </div>
                 <div style="margin-bottom: 15px;">
-                    🌐 <a href="#" style="color: ${emailStyles.secondaryColor}; text-decoration: none;">[Votre site web]</a>
-                </div>
-                <div style="font-size: 13px; opacity: 0.8;">
-                    "Retrouvez votre équilibre intérieur par la sophrologie"
+                    🌐 <a href="#" style="color: ${emailStyles.secondaryColor}; text-decoration: none;">https://www.sophrologuevillepreux.fr/</a>
                 </div>
             </div>
         </div>
@@ -116,13 +113,6 @@ const sendNewTestimonialNotification = async (temoignageData) => {
         <div style="background: ${emailStyles.primaryColor}; color: white; padding: 15px 30px; border-radius: 25px; display: inline-block; text-decoration: none; font-weight: 500; box-shadow: ${emailStyles.softShadow};">
             🔗 Connectez-vous à votre interface d'administration pour valider ce témoignage
         </div>
-    </div>
-
-    <div style="background: #fff3cd; border: 1px solid #ffeaa7; border-radius: 8px; padding: 15px; margin: 20px 0;">
-        <p style="margin: 0; color: #856404; font-size: 14px;">
-            💡 <strong>Rappel :</strong> Les témoignages validés renforcent la confiance de vos futurs patients. 
-            Prenez le temps de les lire attentivement avant validation.
-        </p>
     </div>
   `;
 
@@ -193,7 +183,6 @@ const sendContactMessage = async ({ name, email, message }) => {
         <h4 style="color: #0c5460; margin: 0 0 10px 0;">⚡ Actions rapides :</h4>
         <p style="margin: 5px 0; color: #0c5460;">
             • <strong>Répondre :</strong> <a href="mailto:${email}" style="color: #0c5460;">Cliquez ici pour répondre directement</a><br>
-            • <strong>Délai recommandé :</strong> Réponse sous 24h maximum
         </p>
     </div>
   `;
@@ -231,7 +220,7 @@ const sendAutoResponse = async (name, email) => {
         <h3 style="color: ${emailStyles.primaryColor}; margin: 0 0 15px 0; font-size: 20px;">Message bien reçu !</h3>
         <p style="color: ${emailStyles.textColor}; line-height: 1.6; margin: 0;">
             Je vous remercie pour votre prise de contact. Votre message 
-            a été transmis et je m'engage à vous répondre dans les <strong>24 heures</strong>.
+            a été transmis et je m'engage à vous répondre dans les <strong>24 - 48 heures</strong>.
         </p>
     </div>
 
