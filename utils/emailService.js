@@ -172,19 +172,6 @@ const sendContactMessage = async ({ name, email, message }) => {
                 <strong style="color: ${emailStyles.primaryColor};">📧 Email :</strong>
                 <a href="mailto:${email}" style="color: ${emailStyles.secondaryColor}; margin-left: 10px; text-decoration: none;">${email}</a>
             </div>
-            ${phone ? `
-            <div style="background: white; padding: 15px; border-radius: 8px; border-left: 4px solid ${emailStyles.accentColor};">
-                <strong style="color: ${emailStyles.primaryColor};">📞 Téléphone :</strong>
-                <span style="color: ${emailStyles.textColor}; margin-left: 10px;">${phone}</span>
-            </div>
-            ` : ''}
-            
-            ${subject ? `
-            <div style="background: white; padding: 15px; border-radius: 8px; border-left: 4px solid ${emailStyles.accentColor};">
-                <strong style="color: ${emailStyles.primaryColor};">📝 Sujet :</strong>
-                <span style="color: ${emailStyles.textColor}; margin-left: 10px;">${subject}</span>
-            </div>
-            ` : ''}
             
             <div style="background: white; padding: 15px; border-radius: 8px; border-left: 4px solid ${emailStyles.accentColor};">
                 <strong style="color: ${emailStyles.primaryColor};">📅 Reçu le :</strong>
