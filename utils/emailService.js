@@ -232,12 +232,6 @@ const sendAutoResponse = async (name, email) => {
             <li>En cas d'urgence, n'hésitez pas à me contacter par téléphone</li>
         </ul>
     </div>
-
-    <div style="text-align: center; margin: 30px 0;">
-        <p style="color: ${emailStyles.secondaryColor}; font-style: italic; margin: 0;">
-            "La sophrologie vous accompagne vers un mieux-être durable"
-        </p>
-    </div>
   `;
 
   const clientMailOptions = {
