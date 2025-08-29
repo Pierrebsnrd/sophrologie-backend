@@ -8,28 +8,25 @@ router.post('/', async (req, res) => {
   try {
     console.log("Corps reçu :", req.body);
     const { name, message } = req.body;
+    const errors = {};
 
-    // Validation des champs requis
-    if (!name || !message) {
-      return res.status(400).json({ 
-        success: false,
-        error: 'Nom et message requis' 
-      });
+    // Validation nom
+    if (!name || !name.trim()) {
+      errors.name = "Veuillez saisir votre nom.";
+    } else if (name.trim().length < 2) {
+      errors.name = "Le nom doit contenir au moins 2 caractères.";
     }
 
-    // Validation de longueur
-    if (name.trim().length < 2) {
-      return res.status(400).json({ 
-        success: false,
-        error: 'Le nom doit contenir au moins 2 caractères' 
-      });
+    // Validation message
+    if (!message || !message.trim()) {
+      errors.message = "Veuillez saisir votre message.";
+    } else if (message.trim().length < 10) {
+      errors.message = "Le message doit contenir au moins 10 caractères.";
     }
 
-    if (message.trim().length < 10) {
-      return res.status(400).json({ 
-        success: false,
-        error: 'Le message doit contenir au moins 10 caractères' 
-      });
+    // Si erreurs, renvoyer toutes en une seule fois
+    if (Object.keys(errors).length > 0) {
+      return res.status(400).json({ success: false, errors });
     }
 
     // Créer le témoignage
@@ -42,12 +39,10 @@ router.post('/', async (req, res) => {
 
     // Envoyer notification email (avec gestion d'erreur)
     try {
-      // Passer les données avec createdAt pour l'email
       await sendNewTestimonialNotification(temoignage);
       console.log('✅ Notification email envoyée');
     } catch (emailError) {
       console.error('⚠️ Erreur envoi email (témoignage sauvé):', emailError);
-      // Le témoignage est quand même sauvé même si l'email échoue
     }
 
     res.status(201).json({
@@ -60,7 +55,7 @@ router.post('/', async (req, res) => {
     console.error('❌ Erreur ajout témoignage:', error);
     res.status(500).json({ 
       success: false,
-      error: 'Erreur serveur lors de l\'ajout du témoignage' 
+      message: 'Erreur serveur lors de l\'ajout du témoignage' 
     });
   }
 });

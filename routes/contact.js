@@ -1,45 +1,38 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const { sendContactMessage } = require('../utils/emailService');
-const ContactMessage = require('../models/contactMessage');
+const { sendContactMessage } = require("../utils/emailService");
+const ContactMessage = require("../models/contactMessage");
 
-router.post('/', async (req, res) => {
+router.post("/", async (req, res) => {
   try {
     const { name, email, message } = req.body;
+    const errors = {};
 
-    // Validation des champs requis
-    if (!name || !email || !message) {
-      return res.status(400).json({ 
-        success: false,
-        error: 'Nom, email et message sont requis.' 
-      });
+    // Validation nom
+    if (!name || !name.trim()) {
+      errors.name = "Le prénom est requis.";
+    } else if (name.trim().length < 2) {
+      errors.name = "Le prénom doit contenir au moins 2 caractères.";
     }
 
-    // Validation email basique
+    // Validation email
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      return res.status(400).json({ 
-        success: false,
-        error: 'Format d\'email invalide.' 
-      });
+    if (!email || !email.trim()) {
+      errors.email = "L'email est requis.";
+    } else if (!emailRegex.test(email)) {
+      errors.email = "Veuillez entrer un email valide.";
     }
 
-    // Validation longueurs
-    if (name.trim().length < 2) {
-      return res.status(400).json({ 
-        success: false,
-        error: 'Le nom doit contenir au moins 2 caractères.' 
-      });
+    // Validation message
+    if (!message || !message.trim()) {
+      errors.message = "Le message est requis.";
+    } else if (message.trim().length < 10) {
+      errors.message = "Le message doit contenir au moins 10 caractères.";
     }
 
-    if (message.trim().length < 10) {
-      return res.status(400).json({ 
-        success: false,
-        error: 'Le message doit contenir au moins 10 caractères.' 
-      });
+    if (Object.keys(errors).length > 0) {
+      return res.status(400).json({ success: false, errors });
     }
-
-    console.log('📬 Nouveau message de contact reçu de:', name, '(', email, ')');
 
     // Préparer les données pour l'email
     const contactData = {
@@ -48,34 +41,26 @@ router.post('/', async (req, res) => {
       message: message.trim()
     };
 
-    // Envoyer les emails (admin + auto-réponse)
     try {
       await sendContactMessage(contactData);
-      console.log('✅ Emails envoyés avec succès');
+      console.log("✅ Emails envoyés avec succès");
     } catch (emailError) {
-      console.error('⚠️ Erreur envoi emails (message sauvé quand même):', emailError);
-      // On continue même si l'email échoue
+      console.error("⚠️ Erreur envoi emails (message sauvé quand même):", emailError);
     }
 
-    // Sauvegarder en base (modèle d'origine conservé)
-    await ContactMessage.create({
-      name: contactData.name,
-      email: contactData.email,
-      message: contactData.message
-    });
+    await ContactMessage.create(contactData);
+    console.log("✅ Message de contact sauvé en base");
 
-    console.log('✅ Message de contact sauvé en base');
-
-    res.status(200).json({ 
+    res.status(200).json({
       success: true,
       message: "Votre message a été envoyé avec succès ! Vous recevrez une réponse sous 24 - 48 heures."
     });
 
   } catch (error) {
-    console.error('❌ Erreur envoi message contact:', error);
-    res.status(500).json({ 
+    console.error("❌ Erreur envoi message contact:", error);
+    res.status(500).json({
       success: false,
-      error: "Erreur lors de l'envoi du message. Veuillez réessayer."
+      message: "Erreur lors de l'envoi du message. Veuillez réessayer."
     });
   }
 });
