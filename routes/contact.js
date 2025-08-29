@@ -68,14 +68,14 @@ router.post('/', async (req, res) => {
 
     res.status(200).json({ 
       success: true,
-      message: 'Votre message a été envoyé avec succès ! Vous recevrez une réponse sous 24h.'
+      message: "Votre message a été envoyé avec succès ! Vous recevrez une réponse sous 24 - 48 heures."
     });
 
   } catch (error) {
     console.error('❌ Erreur envoi message contact:', error);
     res.status(500).json({ 
       success: false,
-      error: 'Erreur lors de l\'envoi du message. Veuillez réessayer.' 
+      error: "Erreur lors de l'envoi du message. Veuillez réessayer."
     });
   }
 });
