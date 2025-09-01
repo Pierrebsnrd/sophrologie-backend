@@ -17,6 +17,7 @@ const usersRouter = require('./routes/users');
 const adminRoutes = require('./routes/admin');
 const temoignageRoutes = require('./routes/temoignage');
 const contactRoutes = require('./routes/contact');
+const pagesRoutes = require('./routes/pages'); // Nouvelle route
 
 const app = express();
 
@@ -47,5 +48,6 @@ app.use('/users', usersRouter);
 app.use('/admin', ensureDB, adminRoutes);
 app.use('/temoignage', ensureDB, temoignageRoutes);
 app.use('/contact', ensureDB, contactRoutes);
+app.use('/pages', ensureDB, pagesRoutes); // Route publique pour les pages
 
 module.exports = app;

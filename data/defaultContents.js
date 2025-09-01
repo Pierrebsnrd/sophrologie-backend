@@ -1,14 +1,14 @@
 module.exports = {
     home: {
         title: 'Accueil',
-        metaDescription: 'Découvrez les séances de sophrologie personnalisées avec Stéphanie Habert à Villepreux.',
+        metaDescription: 'Découvrez les séances de sophrologie personnalisées avec Stéphanie Habert à Villepreux. Améliorez votre bien-être grâce à un accompagnement professionnel et bienveillant.',
         sections: [
             {
                 id: 'hero-home',
                 type: 'hero',
                 title: 'Stéphanie Habert Sophrologue',
-                subtitle: 'Un moment pour soi, à Villepreux',
-                image: { url: '/bannieres/accueil.jpg', alt: 'Paysage apaisant' },
+                subtitle: '',
+                image: { url: '/bannieres/accueil.jpg', alt: 'Paysage' },
                 order: 0,
                 settings: { visible: true }
             },
@@ -21,10 +21,10 @@ module.exports = {
                 settings: { visible: true, alignment: 'center' }
             },
             {
-                id: 'sophrologie-def',
+                id: 'sophrologie-definition',
                 type: 'text',
-                title: 'La Sophrologie',
-                content: 'La sophrologie est fondée dans les années 1960 par le Docteur Alfonso Caycedo, médecin psychiatre. Cette discipline est une approche centrée sur la personne qui vise à harmoniser le corps et l\'esprit, en mobilisant ses propres ressources pour développer un mieux-être au quotidien.',
+                title: 'La Sophrologie :',
+                content: 'La sophrologie est fondée dans les années 1960 par le Docteur Alfonso Caycedo, médecin psychiatre. Cette discipline est une approche centrée sur la personne qui vise à harmoniser le corps et l\'esprit, en mobilisant ses propres ressources pour développer un mieux-être au quotidien.\n\nPar des exercices de respiration, de relaxation dynamique et de visualisation libre et neutre, elle aide chacun à mieux se connaître, à renforcer ses ressources intérieures et à accueillir les défis de la vie avec sérénité.\n\nCette discipline vise à apporter à ses consultants une amélioration de la qualité de vie. Sa pratique nécessite un entrainement quotidien du corps et de l\'esprit.\n\nElle favorise le bien être global de la personne. Accessible à tous, la sophrologie est une voie vers l\'épanouissement personnel et la pleine présence à soi-même.',
                 order: 2,
                 settings: { visible: true, alignment: 'left', backgroundColor: '#f0fdfa' }
             },
@@ -45,22 +45,80 @@ module.exports = {
                     {
                         title: 'Sommeil et récupération',
                         content: '(Difficultés d\'endormissement, Réveils nocturnes ou sommeil agité, Fatigue persistante, besoin de récupération)'
+                    },
+                    {
+                        title: 'Préparation mentale',
+                        content: '(Examens, concours, compétitions ou événements importants, prise de parole en public, Projets artistiques, Concentration, gestion du trac…)'
+                    },
+                    {
+                        title: 'Gestion de la douleur',
+                        content: '(Douleurs chroniques, Accompagnement de traitements médicaux : cancer, fibromyalgie, etc.)\n\nLa sophrologie ne remplace pas un traitement médical mais peut le compléter efficacement, en favorisant une meilleure qualité de vie au quotidien.'
+                    },
+                    {
+                        title: 'Accompagnement des étapes de vie',
+                        content: '(Deuil, séparation, maladie, transition de vie personnelle ou professionnelle)'
+                    },
+                    {
+                        title: 'Accompagnement de la maternité',
+                        content: '(Grossesse, post-partum, confiance en soi, gestion des peurs et de la douleur…)'
+                    },
+                    {
+                        title: 'Accompagnement des enfants à partir de 5 ans',
+                        content: '(Gestion des émotions, colère, peurs, agitation, confiance, timidité, sommeil, adaptation au changement…)'
                     }
                 ],
                 order: 3,
                 settings: { visible: true }
             },
             {
-                id: 'cta-rdv',
+                id: 'mon-approche',
+                type: 'text',
+                title: 'Mon approche ou Comment se déroule mon accompagnement ?',
+                content: 'Chaque séance débute par un échange basé sur une écoute inconditionnelle, afin de comprendre vos besoins et ce que vous traversez.\n\nJe construis ensuite un protocole personnalisé, adapté à vos objectifs et à votre rythme. Généralement 6 à 10 séances sont nécessaires en fonction de votre objectif.\n\nLes séances s\'organisent en 3 temps : un accueil bienveillant avec un échange, la pratique de la sophrologie avec des exercices de respirations, de relaxation dynamique et de visualisation neutre, puis un moment d\'échange pour partager cette expérience intérieure vécue durant la séance.\n\nPour obtenir le résultat attendu, la sophrologie demande un investissement personnel et régulier.\n\nÀ la fin de chaque séance, je vous donne des petits exercices à faire chez vous.\n\nN\'hésitez pas à me contacter si vous désirez plus d\'informations.\n\nBelle journée à vous,\nStéphanie Habert\nSophrologue Villepreux',
+                order: 4,
+                settings: { visible: true, alignment: 'left', backgroundColor: '#f0fdfa' }
+            },
+            {
+                id: 'cta-decouvrir',
                 type: 'cta',
                 title: 'Envie de découvrir la sophrologie ?',
                 content: 'Prenez rendez-vous dès maintenant pour une première séance.',
                 buttons: [
-                    { text: '📅 Prendre rendez-vous', url: '/rdv', style: 'primary' },
-                    { text: 'Mes tarifs et prestations', url: '/tarifs', style: 'secondary' }
+                    { text: '📅 Prendre rendez-vous', url: '/rdv', style: 'primary' }
                 ],
-                order: 4,
+                order: 5,
                 settings: { visible: true }
+            },
+            {
+                id: 'cta-renseignements',
+                type: 'cta',
+                title: 'Besoin d\'un renseignement ?',
+                content: '',
+                buttons: [
+                    { text: 'Mes tarifs et prestations', url: '/tarifs', style: 'primary' },
+                    { text: 'Me contacter', url: '/contact', style: 'primary' }
+                ],
+                order: 6,
+                settings: { visible: true }
+            },
+            {
+                id: 'en-savoir-plus',
+                type: 'text',
+                title: 'Envie d\'en savoir plus',
+                content: 'Je vous accompagne pour retrouver un équilibre intérieur et développer vos ressources personnelles.',
+                order: 7,
+                settings: { visible: true, alignment: 'center', backgroundColor: '#f0fdfa' }
+            },
+            {
+                id: 'cta-decouvrir-parcours',
+                type: 'cta',
+                title: '',
+                content: '',
+                buttons: [
+                    { text: '🔍 Découvrir', url: '/qui-suis-je', style: 'primary' }
+                ],
+                order: 8,
+                settings: { visible: true, backgroundColor: '#f0fdfa' }
             }
         ]
     },
@@ -77,25 +135,26 @@ module.exports = {
                 settings: { visible: true }
             },
             {
-                id: 'presentation-perso',
-                type: 'text',
+                id: 'presentation-stephanie',
+                type: 'image-text',
                 title: 'Stéphanie Habert',
-                content: "Je m'appelle Stéphanie Habert, Sophrologue certifiée, je vous propose un accompagnement personnalisé basé sur l'écoute, la bienveillance et le respect de votre individualité. Mon objectif est de vous aider à retrouver un équilibre intérieur et à développer vos propres ressources pour faire face aux défis de la vie. Dans mon cabinet à Villepreux ou en visioconférence, je crée un espace de sécurité et de confiance où chacun peut se reconnecter à ses sensations, ses émotions et ses ressources intérieures. Ma pratique s'adapte aux besoins spécifiques de chaque personne.",
+                content: "Je m'appelle Stéphanie Habert, Sophrologue certifiée, je vous propose un accompagnement personnalisé basé sur l'écoute, la bienveillance et le respect de votre individualité. Mon objectif est de vous aider à retrouver un équilibre intérieur et à développer vos propres ressources pour faire face aux défis de la vie.\n\nDans mon cabinet à Villepreux ou en visioconférence, je crée un espace de sécurité et de confiance où chacun peut se reconnecter à ses sensations, ses émotions et ses ressources intérieures. Ma pratique s'adapte aux besoins spécifiques de chaque personne.",
                 image: { url: '/profile/sophrologue.jpg', alt: 'Stéphanie Habert, Sophrologue certifiée à Villepreux' },
                 order: 1,
                 settings: { visible: true }
             },
             {
-                id: 'history',
+                id: 'mon-parcours',
                 type: 'text',
                 title: 'Mon parcours',
-                content: "Chanteuse d'opéra de formation, j'ai découvert la sophrologie à un moment où j'en avais vraiment besoin. Confrontée aux défis de la scène et aux exigences de la performance artistique, j'ai trouvé dans cette discipline un véritable chemin vers l'équilibre et la sérénité. Grâce à la sophrologie, j'ai retrouvé confiance en moi et j'ai enfin osé laisser ma voix s'exprimer pleinement sur scène. Cette transformation personnelle profonde m'a naturellement menée vers le désir d'accompagner à mon tour d'autres personnes dans leur propre cheminement.",
+                content: "Chanteuse d'opéra de formation, j'ai découvert la sophrologie à un moment où j'en avais vraiment besoin. Confrontée aux défis de la scène et aux exigences de la performance artistique, j'ai trouvé dans cette discipline un véritable chemin vers l'équilibre et la sérénité.\n\nGrâce à la sophrologie, j'ai retrouvé confiance en moi et j'ai enfin osé laisser ma voix s'exprimer pleinement sur scène. Cette transformation personnelle profonde m'a naturellement menée vers le désir d'accompagner à mon tour d'autres personnes dans leur propre cheminement.",
                 order: 2,
-                settings: { visible: true }
+                settings: { visible: true, alignment: 'left', backgroundColor: '#f0fdfa' }
             },
             {
-                id: 'cta-rdv',
+                id: 'cta-rdv-about',
                 type: 'cta',
+                title: '',
                 content: 'Prêt(e) à commencer votre propre voyage vers l\'équilibre et le mieux-être ?',
                 buttons: [
                     { text: '📅 Prendre rendez-vous', url: '/rdv', style: 'primary' }
@@ -118,70 +177,104 @@ module.exports = {
                 settings: { visible: true }
             },
             {
-                id: 'main-pricing',
+                id: 'intro-tarifs',
                 type: 'text',
                 title: 'Explorez une approche personnalisée de la Sophrologie',
-                content: `Parce que chaque parcours est unique, je propose un accompagnement accessible, adapté à vos besoins et à votre situation.\n\nLes tarifs des accompagnements sont identiques quelle que soit la méthode utilisée, qu'ils se fassent au cabinet ou en visio.`,
+                content: 'Parce que chaque parcours est unique, je propose un accompagnement accessible, adapté à vos besoins et à votre situation.',
                 order: 1,
-                settings: { visible: true }
+                settings: { visible: true, alignment: 'center' }
             },
             {
-                id: 'pricing-list',
+                id: 'note-tarifs',
+                type: 'text',
+                title: '',
+                content: 'Les tarifs des accompagnements sont identiques quelle que soit la méthode utilisée, qu\'ils se fassent au cabinet ou en visio.',
+                order: 2,
+                settings: { visible: true, alignment: 'center' }
+            },
+            {
+                id: 'seances-sophrologie',
                 type: 'pricing-table',
                 title: 'Séances de sophrologie',
+                content: '',
                 items: [
-                    { title: 'Première séance individuelle adulte', price: '80 € (1h30)', content: 'Bilan, définition des objectifs, première pratique' },
-                    { title: 'Séance suivi individuelle adulte', price: '70 € (1h00)', content: '' },
-                    { title: 'Première séance individuelle mineur', price: '70 € (1h30)', content: '' },
-                    { title: 'Séance suivi individuelle mineur', price: '60 € (1h00)', content: '' },
-                    { title: 'Séance de groupe', price: '20 € par personne (1h00)', content: 'Minimum 4 participants' },
-                    { title: 'Intervention en entreprise', price: 'Tarif sur demande', content: 'Merci de me contacter pour un devis personnalisé, plus d\'informations ici' }
+                    { 
+                        title: 'Première séance individuelle adulte', 
+                        price: '80 € (1h30)', 
+                        content: 'Bilan, définition des objectifs, première pratique' 
+                    },
+                    { 
+                        title: 'Séance suivi individuelle adulte', 
+                        price: '70 € (1h00)', 
+                        content: '' 
+                    },
+                    { 
+                        title: 'Première séance individuelle mineur', 
+                        price: '70 € (1h30)', 
+                        content: '' 
+                    },
+                    { 
+                        title: 'Séance suivi individuelle mineur', 
+                        price: '60 € (1h00)', 
+                        content: '' 
+                    },
+                    { 
+                        title: 'Séance de groupe', 
+                        price: '20 € par personne (1h00)', 
+                        content: 'Minimum 4 participants' 
+                    },
+                    { 
+                        title: 'Intervention en entreprise', 
+                        price: 'Tarif sur demande', 
+                        content: 'Merci de me contacter pour un devis personnalisé, plus d\'informations ici' 
+                    }
                 ],
-                order: 2,
-                settings: { visible: true }
-            },
-            {
-                id: 'pricing-solidaire',
-                type: 'text',
-                title: 'Tarif solidaire',
-                content: 'Vous avez de faibles revenus ? Contactez-moi : je propose un tarif solidaire dans certains cas.',
                 order: 3,
                 settings: { visible: true }
             },
             {
-                id: 'pricing-remboursement',
+                id: 'tarif-solidaire',
                 type: 'text',
-                title: 'Remboursement',
-                content: `Les consultations de sophrologie ne sont pas prises en charge par la Sécurité Sociale.\n\nCependant, certaines mutuelles de santé proposent un remboursement partiel des médecines douces sur présentation d'une facture.\n\nPensez à vous rapprocher de votre mutuelle pour connaître vos conditions de prise en charge.`,
+                title: 'Tarif solidaire',
+                content: 'Vous avez de faibles revenus ? Contactez-moi : je propose un tarif solidaire dans certains cas.',
                 order: 4,
-                settings: { visible: true }
+                settings: { visible: true, alignment: 'left', backgroundColor: '#f0fdfa' }
             },
             {
-                id: 'cta-pricing',
+                id: 'remboursement',
+                type: 'text',
+                title: 'Remboursement',
+                content: 'Les consultations de sophrologie ne sont pas prises en charge par la Sécurité Sociale.\n\nCependant, certaines mutuelles de santé proposent un remboursement partiel des médecines douces sur présentation d\'une facture.\n\nPensez à vous rapprocher de votre mutuelle pour connaître vos conditions de prise en charge.',
+                order: 5,
+                settings: { visible: true, alignment: 'left', backgroundColor: '#f0fdfa' }
+            },
+            {
+                id: 'cta-reserver',
                 type: 'cta',
-                title: 'Réserver votre séance',
+                title: '',
+                content: '',
                 buttons: [
                     { text: '📅 Réserver votre séance', url: '/rdv', style: 'primary' }
                 ],
-                order: 5,
+                order: 6,
                 settings: { visible: true }
             }
         ]
     },
     testimonials: {
         title: 'Témoignages',
-        metaDescription: 'Découvrez les témoignages des personnes accompagnées par Stéphanie Habert, sophrologue certifiée.',
+        metaDescription: 'Découvrez les témoignages des personnes accompagnées par Stéphanie Habert, sophrologue certifiée. Partagez aussi votre expérience.',
         sections: [
             {
                 id: 'hero-testimonials',
                 type: 'hero',
                 title: 'Témoignages',
-                image: { url: '/bannieres/temoignage.jpg', alt: 'Témoignages clients' },
+                image: { url: '/bannieres/temoignage.jpg', alt: 'Feedback' },
                 order: 0,
                 settings: { visible: true }
             },
             {
-                id: 'testimonials-list',
+                id: 'testimonials-display',
                 type: 'testimonial-list',
                 staticTestimonials: [
                     {
@@ -200,14 +293,14 @@ module.exports = {
                         date: "15/06/2025"
                     }
                 ],
-                fetchFromApi: true, // pour charger depuis /temoignage
+                fetchFromApi: true,
                 order: 1,
                 settings: { visible: true }
             },
             {
-                id: 'testimonial-form',
+                id: 'testimonial-form-section',
                 type: 'testimonial-form',
-                component: 'TestimonialForm',
+                title: '',
                 order: 2,
                 settings: { visible: true }
             }
@@ -226,15 +319,16 @@ module.exports = {
                 settings: { visible: true }
             },
             {
-                id: 'contact-info',
+                id: 'contact-info-section',
                 type: 'contact-info',
-                title: 'Coordonnées',
+                title: '',
                 order: 1,
                 settings: { visible: true }
             },
             {
-                id: 'contact-form-map',
+                id: 'contact-form-map-section',
                 type: 'contact-form-map',
+                title: '',
                 order: 2,
                 settings: { visible: true }
             }
@@ -248,20 +342,22 @@ module.exports = {
                 id: 'hero-ethics',
                 type: 'hero',
                 title: 'Charte éthique',
-                image: { url: '/bannieres/charte.jpg', alt: 'Charte éthique de Stéphanie Habert' },
+                image: { url: '/bannieres/charte.jpg', alt: 'Charte' },
                 order: 0,
                 settings: { visible: true }
             },
             {
-                id: 'ethics-intro',
+                id: 'intro-charte',
                 type: 'text',
+                title: '',
                 content: "En tant que sophrologue, je m'engage à exercer ma pratique avec respect, bienveillance et responsabilité. Cette charte éthique définit les principes qui guident mon accompagnement des personnes vers un mieux-être physique, mental et émotionnel.",
                 order: 1,
                 settings: { visible: true, alignment: 'center' }
             },
             {
-                id: 'ethics-principles',
+                id: 'principes-ethiques',
                 type: 'list-sections',
+                title: '',
                 sections: [
                     {
                         title: "1. Respect de la personne",
@@ -324,29 +420,29 @@ module.exports = {
                 settings: { visible: true }
             },
             {
-                id: 'ethics-conclusion',
+                id: 'conclusion-charte',
                 type: 'text',
                 title: 'Conclusion',
                 content: "Cette charte constitue le socle de ma pratique. Elle reflète mon engagement à accompagner chaque personne avec respect, éthique et bienveillance.\n\nElle évoluera en fonction des besoins de mes clients et des exigences de ma profession.",
                 order: 3,
-                settings: { visible: true }
+                settings: { visible: true, alignment: 'center' }
             }
         ]
     },
     appointment: {
         title: 'Prendre rendez-vous',
-        metaDescription: 'Prenez rendez-vous facilement avec Stéphanie Habert, sophrologue certifiée.',
+        metaDescription: 'Prenez rendez-vous facilement avec Stéphanie Habert, sophrologue certifiée à Villepreux, en ligne ou en cabinet.',
         sections: [
             {
                 id: 'hero-appointment',
                 type: 'hero',
                 title: 'Prendre rendez-vous',
-                image: { url: '/bannieres/rdv.jpg', alt: 'Prise de rendez-vous sophrologie' },
+                image: { url: '/bannieres/rdv.jpg', alt: 'Bureau' },
                 order: 0,
                 settings: { visible: true }
             },
             {
-                id: 'appointment-info',
+                id: 'intro-rdv',
                 type: 'text',
                 title: 'Réservez votre consultation',
                 content: "Choisissez directement le créneau qui vous convient dans l'agenda ci-dessous. Vous recevrez une confirmation automatique par email.",
@@ -354,9 +450,9 @@ module.exports = {
                 settings: { visible: true, alignment: 'center' }
             },
             {
-                id: 'calendly-widget',
+                id: 'calendly-widget-section',
                 type: 'appointment-widget',
-                component: 'Calendly',
+                title: '',
                 order: 2,
                 settings: { visible: true }
             }
