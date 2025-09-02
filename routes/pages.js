@@ -2,7 +2,7 @@
 const express = require('express');
 const router = express.Router();
 const PageContent = require('../models/pageContent');
-const defaultContents = require('../data/defaultContents'); // Import du contenu complet
+const defaultContents = require('../data/completeDefaultContents'); // Import du contenu complet
 
 // Route publique pour récupérer le contenu d'une page
 router.get('/:pageId', async (req, res) => {

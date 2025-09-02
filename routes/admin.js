@@ -6,7 +6,7 @@ const Temoignage = require('../models/temoignage');
 const ContactMessage = require('../models/contactMessage');
 const PageContent = require('../models/pageContent');
 const authMiddleware = require('../middleware/auth');
-const defaultContents = require('../data/defaultContents'); // Import du contenu complet
+const defaultContents = require('../data/completeDefaultContents'); // Import du contenu complet
 
 // Connexion admin
 router.post('/login', async (req, res) => {
@@ -302,20 +302,31 @@ router.get('/pages/:pageId', authMiddleware, async (req, res) => {
   }
 });
 
-// Mettre à jour le contenu d'une page
+// Mettre à jour le contenu avec création automatique de version
 router.put('/pages/:pageId', authMiddleware, async (req, res) => {
   try {
     const { pageId } = req.params;
-    const updateData = {
-      ...req.body,
-      modifiedBy: req.admin._id
-    };
+    const { createVersion, versionComment, ...updateData } = req.body;
 
-    const pageContent = await PageContent.findOneAndUpdate(
-      { pageId },
-      updateData,
-      { new: true, upsert: true }
-    );
+    let pageContent = await PageContent.findOne({ pageId });
+
+    if (!pageContent) {
+      // Créer la page avec le contenu par défaut
+      pageContent = await createDefaultPageContent(pageId, completeDefaultContents);
+    }
+
+    // Créer une version si demandée
+    if (createVersion) {
+      pageContent.createVersion(versionComment || 'Sauvegarde automatique');
+    }
+
+    // Mettre à jour les données
+    Object.assign(pageContent, {
+      ...updateData,
+      modifiedBy: req.admin._id
+    });
+
+    await pageContent.save();
 
     console.log(`✅ Page ${pageId} mise à jour avec succès`);
 
@@ -460,7 +471,7 @@ router.post('/pages/upload-image', authMiddleware, async (req, res) => {
 // Fonction utilitaire pour créer le contenu par défaut d'une page
 async function createDefaultPageContent(pageId) {
   console.log(`🔧 Création du contenu par défaut pour: ${pageId}`);
-  
+
   const pageData = defaultContents[pageId];
   if (!pageData) {
     console.error(`❌ Contenu par défaut non trouvé pour la page: ${pageId}`);
@@ -481,15 +492,131 @@ async function createDefaultPageContent(pageId) {
       metaDescription: pageData.metaDescription,
       sections: pageData.sections || []
     });
-    
+
     await pageContent.save();
     console.log(`✅ Page ${pageId} créée avec ${pageData.sections?.length || 0} sections`);
-    
+
     return pageContent;
   } catch (error) {
     console.error(`❌ Erreur lors de la création de la page ${pageId}:`, error);
     throw error;
   }
 }
+
+// routes/admin.js - Ajouts pour la gestion des versions
+
+// Récupérer l'historique d'une page
+router.get('/pages/:pageId/history', authMiddleware, async (req, res) => {
+  try {
+    const { pageId } = req.params;
+
+    const pageContent = await PageContent.findOne({ pageId })
+      .populate('versions.createdBy', 'email')
+      .populate('modifiedBy', 'email');
+
+    if (!pageContent) {
+      return res.status(404).json({ error: 'Page non trouvée' });
+    }
+
+    const history = pageContent.getVersionHistory();
+
+    res.json({
+      success: true,
+      data: {
+        currentVersion: pageContent.currentVersion,
+        history: history
+      }
+    });
+  } catch (error) {
+    console.error('Erreur récupération historique:', error);
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
+});
+
+// Restaurer une version spécifique
+router.post('/pages/:pageId/restore/:versionNumber', authMiddleware, async (req, res) => {
+  try {
+    const { pageId, versionNumber } = req.params;
+    const { comment } = req.body;
+
+    const pageContent = await PageContent.findOne({ pageId });
+    if (!pageContent) {
+      return res.status(404).json({ error: 'Page non trouvée' });
+    }
+
+    pageContent.restoreVersion(parseInt(versionNumber), req.admin._id);
+
+    // Ajouter un commentaire pour la restauration
+    if (comment) {
+      const currentVersion = pageContent.versions[pageContent.versions.length - 1];
+      if (currentVersion) {
+        currentVersion.comment = `Restauration v${versionNumber}: ${comment}`;
+      }
+    }
+
+    await pageContent.save();
+
+    console.log(`✅ Version ${versionNumber} restaurée pour la page ${pageId}`);
+
+    res.json({
+      success: true,
+      data: pageContent,
+      message: `Version ${versionNumber} restaurée avec succès`
+    });
+  } catch (error) {
+    console.error('Erreur restauration version:', error);
+    res.status(500).json({ error: error.message || 'Erreur serveur' });
+  }
+});
+
+// Sauvegarde automatique
+router.post('/pages/:pageId/autosave', authMiddleware, async (req, res) => {
+  try {
+    const { pageId } = req.params;
+    const data = req.body;
+
+    const pageContent = await PageContent.findOne({ pageId });
+    if (!pageContent) {
+      return res.status(404).json({ error: 'Page non trouvée' });
+    }
+
+    await pageContent.autoSaveData(data, req.admin._id);
+
+    res.json({
+      success: true,
+      message: 'Sauvegarde automatique effectuée',
+      timestamp: new Date()
+    });
+  } catch (error) {
+    console.error('Erreur sauvegarde automatique:', error);
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
+});
+
+// Créer une version avec commentaire
+router.post('/pages/:pageId/create-version', authMiddleware, async (req, res) => {
+  try {
+    const { pageId } = req.params;
+    const { comment } = req.body;
+
+    const pageContent = await PageContent.findOne({ pageId });
+    if (!pageContent) {
+      return res.status(404).json({ error: 'Page non trouvée' });
+    }
+
+    const newVersion = pageContent.createVersion(comment || 'Version manuelle');
+    pageContent.modifiedBy = req.admin._id;
+    await pageContent.save();
+
+    res.json({
+      success: true,
+      data: newVersion,
+      message: 'Version créée avec succès'
+    });
+  } catch (error) {
+    console.error('Erreur création version:', error);
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
+});
 
 module.exports = router;
