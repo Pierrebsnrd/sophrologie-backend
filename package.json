@@ -5,6 +5,8 @@
   "scripts": {
     "start": "node ./bin/www",
     "create-admin": "node scripts/createAdmin.js",
+    "init-pages": "node scripts/initializePages.js",
+    "verify-pages": "node scripts/initializePages.js verify",
     "manage": "node scripts/migratePages.js",
     "pages:migrate": "node scripts/migratePages.js migrate",
     "pages:backup": "node scripts/migratePages.js backup",
@@ -12,7 +14,9 @@
     "pages:verify": "node scripts/migratePages.js verify",
     "pages:sync": "node scripts/migratePages.js sync",
     "pages:cleanup": "node scripts/migratePages.js cleanup",
-    "pages:optimize": "node scripts/migratePages.js optimize"
+    "pages:optimize": "node scripts/migratePages.js optimize",
+    "pages:restore": "node scripts/migratePages.js restore",
+    "setup": "npm run init-pages && npm run verify-pages"
   },
   "dependencies": {
     "bcrypt": "^6.0.0",

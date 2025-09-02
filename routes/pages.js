@@ -1,8 +1,8 @@
-// routes/pages.js - Nouvelle route publique
+// routes/pages.js - Version corrigée
 const express = require('express');
 const router = express.Router();
 const PageContent = require('../models/pageContent');
-const defaultContents = require('../data/completeDefaultContents'); // Import du contenu complet
+const defaultContents = require('../data/completeDefaultContents');
 
 // Route publique pour récupérer le contenu d'une page
 router.get('/:pageId', async (req, res) => {
@@ -15,7 +15,7 @@ router.get('/:pageId', async (req, res) => {
       return res.status(404).json({ error: 'Page non trouvée' });
     }
 
-    let pageContent = await PageContent.findOne({ pageId });
+    let pageContent = await PageContent.findOne({ pageId, status: 'published' });
 
     // Si la page n'existe pas en base, créer le contenu par défaut
     if (!pageContent) {
@@ -24,20 +24,46 @@ router.get('/:pageId', async (req, res) => {
     }
 
     // Filtrer uniquement les sections visibles pour le public
-    const visibleSections = pageContent.sections.filter(section => 
-      section.settings?.visible !== false
-    ).sort((a, b) => (a.order || 0) - (b.order || 0));
+    const visibleSections = (pageContent.sections || [])
+      .filter(section => section.settings?.visible !== false)
+      .sort((a, b) => (a.order || 0) - (b.order || 0))
+      .map(section => {
+        // Nettoyer les sections pour l'affichage public
+        const cleanSection = { ...section };
+        
+        // Supprimer les champs internes si nécessaire
+        delete cleanSection.__v;
+        delete cleanSection._id;
+        
+        return cleanSection;
+      });
+
+    // Réponse optimisée pour le frontend
+    const responseData = {
+      pageId: pageContent.pageId,
+      title: pageContent.title,
+      metaDescription: pageContent.metaDescription,
+      sections: visibleSections,
+      lastModified: pageContent.lastModified
+    };
+
+    // Headers de cache pour améliorer les performances
+    res.set({
+      'Cache-Control': 'public, max-age=300', // 5 minutes de cache
+      'Last-Modified': pageContent.lastModified?.toUTCString() || new Date().toUTCString()
+    });
 
     res.json({
       success: true,
-      data: {
-        ...pageContent.toObject(),
-        sections: visibleSections
-      }
+      data: responseData
     });
+    
   } catch (error) {
     console.error('Erreur récupération contenu page publique:', error);
-    res.status(500).json({ error: 'Erreur serveur' });
+    res.status(500).json({ 
+      error: 'Erreur serveur',
+      message: process.env.NODE_ENV === 'development' ? error.message : 'Une erreur est survenue'
+    });
   }
 });
 
@@ -47,7 +73,6 @@ async function createDefaultPageContent(pageId) {
   
   const pageData = defaultContents[pageId];
   if (!pageData) {
-    console.error(`❌ Contenu par défaut non trouvé pour la page: ${pageId}`);
     throw new Error(`Contenu par défaut non trouvé pour la page: ${pageId}`);
   }
 
@@ -62,7 +87,20 @@ async function createDefaultPageContent(pageId) {
       pageId,
       title: pageData.title,
       metaDescription: pageData.metaDescription,
-      sections: pageData.sections || []
+      sections: pageData.sections || [],
+      currentVersion: 1,
+      status: 'published',
+      versions: [{
+        versionNumber: 1,
+        title: pageData.title,
+        metaDescription: pageData.metaDescription,
+        sections: JSON.parse(JSON.stringify(pageData.sections || [])),
+        createdAt: new Date(),
+        comment: 'Version initiale créée automatiquement'
+      }],
+      autoSave: {
+        enabled: true
+      }
     });
     
     await pageContent.save();

@@ -284,13 +284,43 @@ router.get('/pages/:pageId', authMiddleware, async (req, res) => {
   try {
     const { pageId } = req.params;
 
+    // Validation du pageId
+    const validPageIds = ['home', 'about', 'pricing', 'appointment', 'testimonials', 'contact', 'ethics'];
+    if (!validPageIds.includes(pageId)) {
+      return res.status(400).json({ 
+        error: 'ID de page invalide', 
+        validIds: validPageIds 
+      });
+    }
+
     let pageContent = await PageContent.findOne({ pageId });
 
     // Si la page n'existe pas, créer un contenu par défaut
     if (!pageContent) {
-      console.log(`📄 Création du contenu par défaut pour la page: ${pageId}`);
+      console.log(`📄 Création automatique du contenu par défaut pour: ${pageId}`);
       pageContent = await createDefaultPageContent(pageId);
     }
+
+    // Vérifier l'intégrité des données
+    if (!pageContent.sections) {
+      pageContent.sections = [];
+    }
+    if (!pageContent.versions || pageContent.versions.length === 0) {
+      // Créer une version initiale si manquante
+      pageContent.versions = [{
+        versionNumber: 1,
+        title: pageContent.title,
+        metaDescription: pageContent.metaDescription,
+        sections: JSON.parse(JSON.stringify(pageContent.sections)),
+        createdAt: pageContent.createdAt || new Date(),
+        comment: 'Version initiale recréée'
+      }];
+      pageContent.currentVersion = 1;
+      await pageContent.save();
+    }
+
+    // Trier les sections par ordre
+    pageContent.sections.sort((a, b) => (a.order || 0) - (b.order || 0));
 
     res.json({
       success: true,
@@ -298,9 +328,13 @@ router.get('/pages/:pageId', authMiddleware, async (req, res) => {
     });
   } catch (error) {
     console.error('Erreur récupération contenu page:', error);
-    res.status(500).json({ error: 'Erreur serveur' });
+    res.status(500).json({ 
+      error: 'Erreur serveur',
+      message: process.env.NODE_ENV === 'development' ? error.message : 'Erreur interne'
+    });
   }
 });
+
 
 // Mettre à jour le contenu avec création automatique de version
 router.put('/pages/:pageId', authMiddleware, async (req, res) => {
@@ -308,68 +342,139 @@ router.put('/pages/:pageId', authMiddleware, async (req, res) => {
     const { pageId } = req.params;
     const { createVersion, versionComment, ...updateData } = req.body;
 
+    // Validation du pageId
+    const validPageIds = ['home', 'about', 'pricing', 'appointment', 'testimonials', 'contact', 'ethics'];
+    if (!validPageIds.includes(pageId)) {
+      return res.status(400).json({ 
+        error: 'ID de page invalide',
+        validIds: validPageIds 
+      });
+    }
+
+    // Validation des données de base
+    if (updateData.title && typeof updateData.title !== 'string') {
+      return res.status(400).json({ error: 'Le titre doit être une chaîne de caractères' });
+    }
+    
+    if (updateData.sections && !Array.isArray(updateData.sections)) {
+      return res.status(400).json({ error: 'Les sections doivent être un tableau' });
+    }
+
     let pageContent = await PageContent.findOne({ pageId });
 
     if (!pageContent) {
       // Créer la page avec le contenu par défaut
-      pageContent = await createDefaultPageContent(pageId, completeDefaultContents);
+      pageContent = await createDefaultPageContent(pageId);
     }
 
-    // Créer une version si demandée
+    // Créer une version avant modification si demandé
     if (createVersion) {
-      pageContent.createVersion(versionComment || 'Sauvegarde automatique');
+      const comment = versionComment || `Sauvegarde manuelle - ${new Date().toLocaleString('fr-FR')}`;
+      pageContent.createVersion(comment);
     }
 
-    // Mettre à jour les données
+    // Valider et nettoyer les sections
+    if (updateData.sections) {
+      updateData.sections = updateData.sections.map((section, index) => {
+        // Générer un ID si manquant
+        if (!section.id) {
+          section.id = `section_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+        }
+        
+        // Assigner un ordre si manquant
+        if (section.order === undefined) {
+          section.order = index;
+        }
+        
+        // Valider les paramètres de base
+        if (!section.type) {
+          console.warn(`Section ${section.id}: type manquant, utilisation de 'text' par défaut`);
+          section.type = 'text';
+        }
+
+        // Assurer les paramètres par défaut
+        if (!section.settings) {
+          section.settings = { visible: true };
+        }
+        
+        return section;
+      });
+    }
+
+    // Mettre à jour les données avec validation
     Object.assign(pageContent, {
       ...updateData,
-      modifiedBy: req.admin._id
+      modifiedBy: req.admin._id,
+      lastModified: new Date()
     });
 
     await pageContent.save();
 
-    console.log(`✅ Page ${pageId} mise à jour avec succès`);
+    console.log(`✅ Page ${pageId} mise à jour avec succès par ${req.admin.email}`);
 
     res.json({
       success: true,
-      data: pageContent
+      data: pageContent,
+      message: 'Page mise à jour avec succès'
     });
   } catch (error) {
     console.error('Erreur mise à jour contenu page:', error);
-    res.status(500).json({ error: 'Erreur serveur' });
+    res.status(500).json({ 
+      error: 'Erreur lors de la sauvegarde',
+      message: process.env.NODE_ENV === 'development' ? error.message : 'Erreur interne'
+    });
   }
 });
 
 // Récupérer toutes les pages pour la liste
 router.get('/pages', authMiddleware, async (req, res) => {
   try {
+    // Récupérer les pages existantes
     const pages = await PageContent.find()
-      .select('pageId title lastModified')
+      .select('pageId title lastModified currentVersion status')
       .sort({ pageId: 1 });
 
-    // Ajouter les pages manquantes avec contenu par défaut
+    // Vérifier que toutes les pages requises existent
     const existingPageIds = pages.map(p => p.pageId);
     const allPageIds = ['home', 'about', 'pricing', 'appointment', 'testimonials', 'contact', 'ethics'];
+    const missingPages = allPageIds.filter(id => !existingPageIds.includes(id));
 
-    for (const pageId of allPageIds) {
-      if (!existingPageIds.includes(pageId)) {
-        console.log(`📄 Création automatique de la page manquante: ${pageId}`);
+    // Créer les pages manquantes
+    for (const pageId of missingPages) {
+      console.log(`📄 Création automatique de la page manquante: ${pageId}`);
+      try {
         await createDefaultPageContent(pageId);
+      } catch (createError) {
+        console.error(`❌ Erreur création page ${pageId}:`, createError);
+        // Continuer avec les autres pages
       }
     }
 
     // Récupérer à nouveau avec les pages créées
     const allPages = await PageContent.find()
-      .select('pageId title lastModified')
+      .select('pageId title lastModified currentVersion status')
       .sort({ pageId: 1 });
+
+    // Enrichir avec des métadonnées
+    const enrichedPages = allPages.map(page => ({
+      ...page.toObject(),
+      displayName: getPageDisplayName(page.pageId),
+      url: getPageUrl(page.pageId),
+      description: getPageDescription(page.pageId)
+    }));
 
     res.json({
       success: true,
-      data: allPages
+      data: enrichedPages,
+      totalPages: enrichedPages.length,
+      missingPagesCreated: missingPages.length
     });
   } catch (error) {
     console.error('Erreur récupération pages:', error);
-    res.status(500).json({ error: 'Erreur serveur' });
+    res.status(500).json({ 
+      error: 'Erreur lors du chargement des pages',
+      message: process.env.NODE_ENV === 'development' ? error.message : 'Erreur interne'
+    });
   }
 });
 
@@ -379,6 +484,19 @@ router.post('/pages/:pageId/duplicate', authMiddleware, async (req, res) => {
     const { pageId } = req.params;
     const { newPageId, newTitle } = req.body;
 
+    // Validation
+    if (!newPageId || !newTitle) {
+      return res.status(400).json({ 
+        error: 'Nouvel ID et titre requis'
+      });
+    }
+
+    if (!/^[a-z]+$/.test(newPageId)) {
+      return res.status(400).json({ 
+        error: 'L\'ID doit contenir uniquement des lettres minuscules'
+      });
+    }
+
     const originalPage = await PageContent.findOne({ pageId });
     if (!originalPage) {
       return res.status(404).json({ error: 'Page source non trouvée' });
@@ -387,32 +505,51 @@ router.post('/pages/:pageId/duplicate', authMiddleware, async (req, res) => {
     // Vérifier que la nouvelle page n'existe pas
     const existingPage = await PageContent.findOne({ pageId: newPageId });
     if (existingPage) {
-      return res.status(400).json({ error: 'Une page avec cet ID existe déjà' });
+      return res.status(409).json({ error: 'Une page avec cet ID existe déjà' });
     }
 
+    // Créer la page dupliquée
     const mongoose = require('mongoose');
     const duplicatedPage = new PageContent({
       pageId: newPageId,
       title: newTitle,
-      metaDescription: originalPage.metaDescription,
+      metaDescription: `${originalPage.metaDescription} (copie)`,
       sections: originalPage.sections.map(section => ({
         ...section.toObject(),
         id: new mongoose.Types.ObjectId().toString()
       })),
-      modifiedBy: req.admin._id
+      status: 'draft', // Commencer en brouillon
+      modifiedBy: req.admin._id,
+      currentVersion: 1,
+      versions: [{
+        versionNumber: 1,
+        title: newTitle,
+        metaDescription: `${originalPage.metaDescription} (copie)`,
+        sections: JSON.parse(JSON.stringify(originalPage.sections)),
+        createdAt: new Date(),
+        comment: `Dupliqué depuis ${pageId} par ${req.admin.email}`,
+        createdBy: req.admin._id
+      }]
     });
 
     await duplicatedPage.save();
 
+    console.log(`✅ Page ${pageId} dupliquée vers ${newPageId} par ${req.admin.email}`);
+
     res.json({
       success: true,
-      data: duplicatedPage
+      data: duplicatedPage,
+      message: 'Page dupliquée avec succès'
     });
   } catch (error) {
     console.error('Erreur duplication page:', error);
-    res.status(500).json({ error: 'Erreur serveur' });
+    res.status(500).json({ 
+      error: 'Erreur lors de la duplication',
+      message: process.env.NODE_ENV === 'development' ? error.message : 'Erreur interne'
+    });
   }
 });
+
 
 // Réorganiser les sections d'une page
 router.post('/pages/:pageId/reorder', authMiddleware, async (req, res) => {
@@ -482,7 +619,7 @@ async function createDefaultPageContent(pageId) {
     pageId,
     title: pageData.title,
     sectionsCount: pageData.sections?.length || 0,
-    firstSectionType: pageData.sections?.[0]?.type || 'none'
+    metaDescription: pageData.metaDescription ? 'Oui' : 'Non'
   });
 
   try {
@@ -490,7 +627,20 @@ async function createDefaultPageContent(pageId) {
       pageId,
       title: pageData.title,
       metaDescription: pageData.metaDescription,
-      sections: pageData.sections || []
+      sections: pageData.sections || [],
+      currentVersion: 1,
+      status: 'published',
+      versions: [{
+        versionNumber: 1,
+        title: pageData.title,
+        metaDescription: pageData.metaDescription,
+        sections: JSON.parse(JSON.stringify(pageData.sections || [])),
+        createdAt: new Date(),
+        comment: 'Version initiale créée automatiquement'
+      }],
+      autoSave: {
+        enabled: true
+      }
     });
 
     await pageContent.save();
@@ -501,6 +651,46 @@ async function createDefaultPageContent(pageId) {
     console.error(`❌ Erreur lors de la création de la page ${pageId}:`, error);
     throw error;
   }
+}
+
+// Fonctions utilitaires pour les métadonnées des pages
+function getPageDisplayName(pageId) {
+  const names = {
+    home: 'Accueil',
+    about: 'Qui suis-je ?',
+    pricing: 'Tarifs',
+    appointment: 'Prendre rendez-vous',
+    testimonials: 'Témoignages',
+    contact: 'Contact',
+    ethics: 'Charte éthique'
+  };
+  return names[pageId] || pageId;
+}
+
+function getPageUrl(pageId) {
+  const urls = {
+    home: '/',
+    about: '/qui-suis-je',
+    pricing: '/tarifs',
+    appointment: '/rdv',
+    testimonials: '/temoignages',
+    contact: '/contact',
+    ethics: '/charte'
+  };
+  return urls[pageId] || `/${pageId}`;
+}
+
+function getPageDescription(pageId) {
+  const descriptions = {
+    home: 'Page principale avec présentation et services',
+    about: 'Parcours et présentation personnelle',
+    pricing: 'Tarifs des séances et prestations',
+    appointment: 'Prise de rendez-vous en ligne',
+    testimonials: 'Témoignages clients et formulaire',
+    contact: 'Coordonnées et formulaire de contact',
+    ethics: 'Charte éthique et déontologique'
+  };
+  return descriptions[pageId] || 'Page du site web';
 }
 
 // routes/admin.js - Ajouts pour la gestion des versions
