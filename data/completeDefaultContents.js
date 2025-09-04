@@ -215,12 +215,12 @@ const completeDefaultContents = {
             content: '' 
           },
           { 
-            title: 'Première séance individuelle mineur', 
+            title: 'Première séance individuelle adolescent', 
             price: '70 € (1h30)', 
             content: '' 
           },
           { 
-            title: 'Séance suivi individuelle mineur', 
+            title: 'Séance suivi individuelle adolescent', 
             price: '60 € (1h00)', 
             content: '' 
           },
