@@ -246,13 +246,16 @@ pageContentSchema.statics.isValidSectionType = function(type) {
 
 // Méthode pour obtenir les statistiques de versions
 pageContentSchema.methods.getVersionStats = function() {
+  // Vérification de sécurité pour éviter l'erreur "Cannot read properties of undefined"
+  const versions = this.versions || [];
+  
   return {
-    totalVersions: this.versions.length,
-    currentVersion: this.currentVersion,
-    lastVersionDate: this.versions.length > 0 ? 
-      this.versions[this.versions.length - 1].createdAt : this.createdAt,
-    hasDraft: !!this.autoSave?.draft,
-    draftSavedAt: this.autoSave?.draft?.savedAt
+    totalVersions: versions.length,
+    currentVersion: this.currentVersion || 1,
+    lastVersionDate: versions.length > 0 ? 
+      versions[versions.length - 1].createdAt : this.createdAt,
+    hasDraft: !!(this.autoSave?.draft),
+    draftSavedAt: this.autoSave?.draft?.savedAt || null
   };
 };
 

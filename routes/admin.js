@@ -277,57 +277,126 @@ router.patch('/profile/password', authMiddleware, async (req, res) => {
 // Liste de toutes les pages avec métadonnées enrichies
 router.get('/pages', authMiddleware, async (req, res) => {
   try {
-    const pages = await PageContent.find()
-      .select('pageId title lastModified status currentVersion')
+    console.log('🔍 Récupération de la liste des pages...');
+
+    // Récupérer toutes les pages existantes
+    const pages = await PageContent.find({ status: { $ne: 'archived' } })
+      .select('pageId title lastModified status currentVersion autoSave sections versions')
       .sort({ pageId: 1 });
+
+    console.log(`📄 ${pages.length} pages trouvées en BDD`);
 
     // Vérifier que toutes les pages requises existent
     const existingPageIds = pages.map(p => p.pageId);
     const allPageIds = Object.keys(defaultContents);
     const missingPages = allPageIds.filter(id => !existingPageIds.includes(id));
 
-    // Créer les pages manquantes
+    console.log('Pages manquantes:', missingPages);
+
+    // Créer les pages manquantes de manière sécurisée
+    const createdPages = [];
     for (const pageId of missingPages) {
       console.log(`📄 Création automatique de la page manquante: ${pageId}`);
       try {
-        await createPageWithDefaultContent(pageId, req.admin.email);
+        const newPage = await createPageWithDefaultContent(pageId, req.admin.email);
+        createdPages.push(newPage);
+        console.log(`✅ Page ${pageId} créée avec succès`);
       } catch (createError) {
-        console.error(`❌ Erreur création page ${pageId}:`, createError);
+        console.error(`❌ Erreur création page ${pageId}:`, createError.message);
+        // Ne pas bloquer le processus pour une page qui échoue
       }
     }
 
     // Récupérer à nouveau avec les pages créées
-    const allPages = await PageContent.find()
-      .select('pageId title lastModified status currentVersion autoSave')
+    const allPages = await PageContent.find({ status: { $ne: 'archived' } })
+      .select('pageId title lastModified status currentVersion autoSave sections versions')
       .sort({ pageId: 1 });
 
-    // Enrichir avec des métadonnées et statistiques
-    const enrichedPages = await Promise.all(allPages.map(async page => {
-      const stats = page.getVersionStats();
-      return {
-        ...page.toObject(),
-        displayName: getPageDisplayName(page.pageId),
-        url: getPageUrl(page.pageId),
-        description: getPageDescription(page.pageId),
-        stats: stats,
-        sectionsCount: page.sections?.length || 0
-      };
-    }));
+    // Enrichir avec des métadonnées et statistiques - AVEC PROTECTION D'ERREUR
+    const enrichedPages = allPages.map((page, index) => {
+      try {
+        // Protection contre les erreurs de getVersionStats
+        let stats;
+        if (typeof page.getVersionStats === 'function') {
+          stats = page.getVersionStats();
+        } else {
+          // Fallback si la méthode n'existe pas
+          stats = {
+            totalVersions: page.versions?.length || 0,
+            currentVersion: page.currentVersion || 1,
+            lastVersionDate: page.lastModified,
+            hasDraft: !!(page.autoSave?.draft),
+            draftSavedAt: page.autoSave?.draft?.savedAt
+          };
+        }
+
+        return {
+          pageId: page.pageId,
+          title: page.title,
+          lastModified: page.lastModified,
+          status: page.status,
+          currentVersion: page.currentVersion || 1,
+          displayName: getPageDisplayName(page.pageId),
+          url: getPageUrl(page.pageId),
+          description: getPageDescription(page.pageId),
+          stats: stats,
+          sectionsCount: page.sections?.length || 0,
+          autoSave: {
+            enabled: page.autoSave?.enabled || false,
+            hasDraft: !!(page.autoSave?.draft),
+            lastSave: page.autoSave?.lastSave
+          }
+        };
+      } catch (pageError) {
+        console.error(`❌ Erreur traitement page ${page.pageId}:`, pageError);
+
+        // Retourner une version minimale en cas d'erreur
+        return {
+          pageId: page.pageId,
+          title: page.title || 'Page sans titre',
+          lastModified: page.lastModified || new Date(),
+          status: page.status || 'published',
+          currentVersion: page.currentVersion || 1,
+          displayName: getPageDisplayName(page.pageId),
+          url: getPageUrl(page.pageId),
+          description: getPageDescription(page.pageId),
+          stats: {
+            totalVersions: 0,
+            currentVersion: 1,
+            lastVersionDate: page.lastModified || new Date(),
+            hasDraft: false,
+            draftSavedAt: null
+          },
+          sectionsCount: 0,
+          autoSave: {
+            enabled: false,
+            hasDraft: false,
+            lastSave: null
+          },
+          error: 'Erreur lors du traitement de cette page'
+        };
+      }
+    });
+
+    console.log(`✅ ${enrichedPages.length} pages enrichies envoyées au frontend`);
 
     res.json({
       success: true,
       data: enrichedPages,
       totalPages: enrichedPages.length,
-      missingPagesCreated: missingPages.length
+      missingPagesCreated: createdPages.length
     });
+
   } catch (error) {
-    console.error('Erreur récupération pages:', error);
-    res.status(500).json({ 
+    console.error('❌ Erreur critique récupération pages:', error);
+    res.status(500).json({
+      success: false,
       error: 'Erreur lors du chargement des pages',
       message: process.env.NODE_ENV === 'development' ? error.message : 'Erreur interne'
     });
   }
 });
+
 
 // Récupérer une page avec toutes ses informations et versions
 router.get('/pages/:pageId', authMiddleware, async (req, res) => {
@@ -336,8 +405,8 @@ router.get('/pages/:pageId', authMiddleware, async (req, res) => {
     const includeVersions = req.query.includeVersions === 'true';
 
     if (!isValidPageId(pageId)) {
-      return res.status(400).json({ 
-        error: 'ID de page invalide', 
+      return res.status(400).json({
+        error: 'ID de page invalide',
         validIds: Object.keys(defaultContents)
       });
     }
@@ -376,7 +445,7 @@ router.get('/pages/:pageId', authMiddleware, async (req, res) => {
     });
   } catch (error) {
     console.error('Erreur récupération contenu page:', error);
-    res.status(500).json({ 
+    res.status(500).json({
       error: 'Erreur serveur',
       message: process.env.NODE_ENV === 'development' ? error.message : 'Erreur interne'
     });
@@ -391,7 +460,7 @@ router.put('/pages/:pageId', authMiddleware, async (req, res) => {
     const { comment } = req.query; // Commentaire optionnel pour la version
 
     if (!isValidPageId(pageId)) {
-      return res.status(400).json({ 
+      return res.status(400).json({
         error: 'ID de page invalide',
         validIds: Object.keys(defaultContents)
       });
@@ -400,7 +469,7 @@ router.put('/pages/:pageId', authMiddleware, async (req, res) => {
     // Validation des données
     const validationResult = validatePageData(updateData);
     if (!validationResult.isValid) {
-      return res.status(400).json({ 
+      return res.status(400).json({
         error: 'Données invalides',
         details: validationResult.errors
       });
@@ -445,7 +514,7 @@ router.put('/pages/:pageId', authMiddleware, async (req, res) => {
     });
   } catch (error) {
     console.error('Erreur mise à jour page:', error);
-    res.status(500).json({ 
+    res.status(500).json({
       error: 'Erreur lors de la sauvegarde',
       message: process.env.NODE_ENV === 'development' ? error.message : 'Erreur interne'
     });
@@ -555,7 +624,7 @@ router.post('/pages/:pageId/versions/:versionNumber/restore', authMiddleware, as
     }
 
     const restoredVersion = pageContent.restoreVersion(
-      parseInt(versionNumber), 
+      parseInt(versionNumber),
       req.admin.email
     );
 
@@ -582,7 +651,7 @@ router.post('/pages/:pageId/versions/:versionNumber/restore', authMiddleware, as
     });
   } catch (error) {
     console.error('Erreur restauration version:', error);
-    res.status(500).json({ 
+    res.status(500).json({
       error: 'Erreur lors de la restauration',
       message: error.message
     });
@@ -667,7 +736,7 @@ router.post('/pages/:pageId/draft/publish', authMiddleware, async (req, res) => 
     });
   } catch (error) {
     console.error('Erreur publication brouillon:', error);
-    res.status(500).json({ 
+    res.status(500).json({
       error: 'Erreur lors de la publication',
       message: error.message
     });
@@ -686,35 +755,47 @@ async function createPageWithDefaultContent(pageId, userId = null) {
 
   console.log(`🔧 Création du contenu par défaut pour: ${pageId}`);
 
-  const pageContent = new PageContent({
-    pageId,
-    title: pageData.title,
-    metaDescription: pageData.metaDescription,
-    sections: pageData.sections || [],
-    currentVersion: 1,
-    status: 'published',
-    versions: [{
-      versionNumber: 1,
+  // Vérifier si la page existe déjà
+  const existingPage = await PageContent.findOne({ pageId });
+  if (existingPage) {
+    console.log(`ℹ️  Page ${pageId} existe déjà, retour de la page existante`);
+    return existingPage;
+  }
+
+  try {
+    const pageContent = new PageContent({
+      pageId,
       title: pageData.title,
       metaDescription: pageData.metaDescription,
-      sections: JSON.parse(JSON.stringify(pageData.sections || [])),
-      createdAt: new Date(),
+      sections: JSON.parse(JSON.stringify(pageData.sections || [])), // Deep clone
+      currentVersion: 1,
+      status: 'published',
+      versions: [{
+        versionNumber: 1,
+        title: pageData.title,
+        metaDescription: pageData.metaDescription,
+        sections: JSON.parse(JSON.stringify(pageData.sections || [])),
+        createdAt: new Date(),
+        createdBy: userId,
+        comment: 'Version initiale créée automatiquement'
+      }],
+      autoSave: {
+        enabled: true,
+        interval: 30000
+      },
       createdBy: userId,
-      comment: 'Version initiale créée automatiquement'
-    }],
-    autoSave: {
-      enabled: true,
-      interval: 30000
-    },
-    createdBy: userId
-  });
+      lastModifiedBy: userId
+    });
 
-  await pageContent.save();
-  console.log(`✅ Page ${pageId} créée avec ${pageData.sections?.length || 0} sections`);
+    const savedPage = await pageContent.save();
+    console.log(`✅ Page ${pageId} créée avec ${pageData.sections?.length || 0} sections`);
 
-  return pageContent;
+    return savedPage;
+  } catch (error) {
+    console.error(`❌ Erreur lors de la sauvegarde de la page ${pageId}:`, error);
+    throw new Error(`Impossible de créer la page ${pageId}: ${error.message}`);
+  }
 }
-
 function isValidPageId(pageId) {
   return Object.keys(defaultContents).includes(pageId);
 }
@@ -737,7 +818,7 @@ function validatePageData(data) {
       } else if (!PageContent.isValidSectionType(section.type)) {
         errors.push(`Section ${index}: type "${section.type}" non supporté`);
       }
-      
+
       if (!section.id) {
         errors.push(`Section ${index}: id manquant`);
       }
@@ -755,7 +836,7 @@ function hasContentChanged(existingPage, newData) {
   if (newData.title && newData.title !== existingPage.title) return true;
   if (newData.metaDescription !== undefined && newData.metaDescription !== existingPage.metaDescription) return true;
   if (newData.sections && JSON.stringify(newData.sections) !== JSON.stringify(existingPage.sections)) return true;
-  
+
   return false;
 }
 
@@ -765,12 +846,12 @@ function cleanAndValidateSections(sections) {
     if (!section.id) {
       section.id = `section_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     }
-    
+
     // Assigner un ordre si manquant
     if (section.order === undefined) {
       section.order = index;
     }
-    
+
     // Valider le type
     if (!section.type || !PageContent.isValidSectionType(section.type)) {
       console.warn(`Section ${section.id}: type "${section.type}" invalide, utilisation de 'text' par défaut`);
@@ -781,11 +862,10 @@ function cleanAndValidateSections(sections) {
     if (!section.settings) {
       section.settings = { visible: true };
     }
-    
+
     return section;
   });
 }
-
 function getPageDisplayName(pageId) {
   const names = {
     home: 'Accueil',
