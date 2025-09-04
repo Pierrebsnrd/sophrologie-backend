@@ -126,8 +126,8 @@ const sendNewTestimonialNotification = async (temoignageData) => {
   await transporter.sendMail(mailOptions);
 };
 
-// Message de contact avec auto-réponse
-const sendContactMessage = async ({ name, email, message }) => {
+// Message de contact avec auto-réponse - AVEC TÉLÉPHONE OBLIGATOIRE
+const sendContactMessage = async ({ name, email, phone, message }) => {
   const dateFormatted = new Date().toLocaleDateString('fr-FR', {
     weekday: 'long',
     year: 'numeric',
@@ -164,6 +164,11 @@ const sendContactMessage = async ({ name, email, message }) => {
             </div>
             
             <div style="background: white; padding: 15px; border-radius: 8px; border-left: 4px solid ${emailStyles.accentColor};">
+                <strong style="color: ${emailStyles.primaryColor};">📞 Téléphone :</strong>
+                <a href="tel:${phone}" style="color: ${emailStyles.secondaryColor}; margin-left: 10px; text-decoration: none;">${phone}</a>
+            </div>
+            
+            <div style="background: white; padding: 15px; border-radius: 8px; border-left: 4px solid ${emailStyles.accentColor};">
                 <strong style="color: ${emailStyles.primaryColor};">📅 Reçu le :</strong>
                 <span style="color: ${emailStyles.textColor}; margin-left: 10px;">${dateFormatted}</span>
             </div>
@@ -182,7 +187,8 @@ const sendContactMessage = async ({ name, email, message }) => {
     <div style="background: #e8f4f8; border: 1px solid #bee5eb; border-radius: 8px; padding: 20px; margin: 25px 0;">
         <h4 style="color: #0c5460; margin: 0 0 10px 0;">⚡ Actions rapides :</h4>
         <p style="margin: 5px 0; color: #0c5460;">
-            • <strong>Répondre :</strong> <a href="mailto:${email}" style="color: #0c5460;">Cliquez ici pour répondre directement</a><br>
+            • <strong>Répondre par email :</strong> <a href="mailto:${email}" style="color: #0c5460;">Cliquez ici pour répondre</a><br>
+            • <strong>Appeler :</strong> <a href="tel:${phone}" style="color: #0c5460;">${phone}</a><br>
         </p>
     </div>
   `;
@@ -229,7 +235,7 @@ const sendAutoResponse = async (name, email) => {
         <ul style="color: ${emailStyles.textColor}; line-height: 1.8; padding-left: 20px;">
             <li>Consultez mon site web pour découvrir mes services de sophrologie</li>
             <li>Suivez-moi sur les réseaux sociaux pour des conseils bien-être</li>
-            <li>En cas d'urgence, n'hésitez pas à me contacter par téléphone</li>
+            <li>En cas d'urgence, n'hésitez pas à me contacter par téléphone au 06 11 42 17 65</li>
         </ul>
     </div>
   `;

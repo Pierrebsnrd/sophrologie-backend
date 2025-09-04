@@ -3,9 +3,17 @@ const router = express.Router();
 const { sendContactMessage } = require("../utils/emailService");
 const ContactMessage = require("../models/contactMessage");
 
+// Fonction de validation du téléphone français
+function isValidPhone(phone) {
+  if (!phone || !phone.trim()) return false; // Obligatoire maintenant
+  const phoneRegex = /^(?:(?:\+33|0)[1-9](?:[0-9]{8}))$/;
+  const cleanPhone = phone.replace(/[\s\.\-]/g, '');
+  return phoneRegex.test(cleanPhone);
+}
+
 router.post("/", async (req, res) => {
   try {
-    const { name, email, message } = req.body;
+    const { name, email, phone, message } = req.body;
     const errors = {};
 
     // Validation nom
@@ -23,6 +31,13 @@ router.post("/", async (req, res) => {
       errors.email = "Veuillez entrer un email valide.";
     }
 
+    // Validation téléphone (obligatoire)
+    if (!phone || !phone.trim()) {
+      errors.phone = "Le numéro de téléphone est requis.";
+    } else if (!isValidPhone(phone)) {
+      errors.phone = "Veuillez entrer un numéro de téléphone valide (format français).";
+    }
+
     // Validation message
     if (!message || !message.trim()) {
       errors.message = "Le message est requis.";
@@ -38,6 +53,7 @@ router.post("/", async (req, res) => {
     const contactData = {
       name: name.trim(),
       email: email.trim().toLowerCase(),
+      phone: phone.trim(),
       message: message.trim()
     };
 
