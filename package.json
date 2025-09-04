@@ -4,19 +4,36 @@
   "private": true,
   "scripts": {
     "start": "node ./bin/www",
+    "dev": "nodemon ./bin/www",
     "create-admin": "node scripts/createAdmin.js",
-    "init-pages": "node scripts/initializePages.js",
-    "verify-pages": "node scripts/initializePages.js verify",
-    "manage": "node scripts/migratePages.js",
-    "pages:migrate": "node scripts/migratePages.js migrate",
-    "pages:backup": "node scripts/migratePages.js backup",
-    "pages:status": "node scripts/migratePages.js status",
-    "pages:verify": "node scripts/migratePages.js verify",
-    "pages:sync": "node scripts/migratePages.js sync",
-    "pages:cleanup": "node scripts/migratePages.js cleanup",
-    "pages:optimize": "node scripts/migratePages.js optimize",
-    "pages:restore": "node scripts/migratePages.js restore",
-    "setup": "npm run init-pages && npm run verify-pages"
+    
+    "_comment_deprecated": "Scripts obsolètes - remplacés par pageManager",
+    "init-pages": "echo 'DEPRECATED: Utilisez npm run pages:init' && node scripts/pageManager.js init",
+    "verify-pages": "echo 'DEPRECATED: Utilisez npm run pages:verify' && node scripts/pageManager.js verify",
+    "manage": "echo 'DEPRECATED: Utilisez npm run pages:*' && node scripts/pageManager.js help",
+    
+    "_comment_new": "Nouveaux scripts unifiés avec pageManager",
+    "pages:init": "node scripts/pageManager.js init",
+    "pages:status": "node scripts/pageManager.js status",
+    "pages:verify": "node scripts/pageManager.js verify",
+    "pages:backup": "node scripts/pageManager.js backup",
+    "pages:optimize": "node scripts/pageManager.js optimize",
+    "pages:sync": "node scripts/pageManager.js sync",
+    "pages:restore": "node scripts/pageManager.js restore",
+    "pages:help": "node scripts/pageManager.js help",
+    
+    "_comment_aliases": "Aliases pour compatibilité",
+    "pages:migrate": "npm run pages:init",
+    "pages:cleanup": "npm run pages:optimize",
+    
+    "_comment_setup": "Script de setup complet",
+    "setup": "npm run pages:init && npm run pages:verify && npm run pages:status",
+    "setup:fresh": "npm run pages:backup && npm run pages:init && npm run pages:verify",
+    
+    "_comment_maintenance": "Scripts de maintenance",
+    "maintenance:backup": "npm run pages:backup",
+    "maintenance:verify": "npm run pages:verify && npm run pages:status",
+    "maintenance:optimize": "npm run pages:optimize && npm run pages:verify"
   },
   "dependencies": {
     "bcrypt": "^6.0.0",
@@ -31,5 +48,8 @@
     "mongoose": "^8.16.4",
     "morgan": "~1.9.1",
     "nodemailer": "^7.0.5"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
   }
 }
