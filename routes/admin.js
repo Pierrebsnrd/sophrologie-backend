@@ -279,7 +279,6 @@ router.patch('/profile/password', authMiddleware, async (req, res) => {
   }
 });
 
-// Récupérer le contenu d'une page
 router.get('/pages/:pageId', authMiddleware, async (req, res) => {
   try {
     const { pageId } = req.params;
@@ -305,19 +304,6 @@ router.get('/pages/:pageId', authMiddleware, async (req, res) => {
     if (!pageContent.sections) {
       pageContent.sections = [];
     }
-    if (!pageContent.versions || pageContent.versions.length === 0) {
-      // Créer une version initiale si manquante
-      pageContent.versions = [{
-        versionNumber: 1,
-        title: pageContent.title,
-        metaDescription: pageContent.metaDescription,
-        sections: JSON.parse(JSON.stringify(pageContent.sections)),
-        createdAt: pageContent.createdAt || new Date(),
-        comment: 'Version initiale recréée'
-      }];
-      pageContent.currentVersion = 1;
-      await pageContent.save();
-    }
 
     // Trier les sections par ordre
     pageContent.sections.sort((a, b) => (a.order || 0) - (b.order || 0));
@@ -335,12 +321,11 @@ router.get('/pages/:pageId', authMiddleware, async (req, res) => {
   }
 });
 
-
-// Mettre à jour le contenu avec création automatique de version
+// Mettre à jour le contenu - VERSION SIMPLIFIÉE (sans versions)
 router.put('/pages/:pageId', authMiddleware, async (req, res) => {
   try {
     const { pageId } = req.params;
-    const { createVersion, versionComment, ...updateData } = req.body;
+    const updateData = req.body;
 
     // Validation du pageId
     const validPageIds = ['home', 'about', 'pricing', 'appointment', 'testimonials', 'contact', 'ethics'];
@@ -365,12 +350,6 @@ router.put('/pages/:pageId', authMiddleware, async (req, res) => {
     if (!pageContent) {
       // Créer la page avec le contenu par défaut
       pageContent = await createDefaultPageContent(pageId);
-    }
-
-    // Créer une version avant modification si demandé
-    if (createVersion) {
-      const comment = versionComment || `Sauvegarde manuelle - ${new Date().toLocaleString('fr-FR')}`;
-      pageContent.createVersion(comment);
     }
 
     // Valider et nettoyer les sections
@@ -401,16 +380,15 @@ router.put('/pages/:pageId', authMiddleware, async (req, res) => {
       });
     }
 
-    // Mettre à jour les données avec validation
+    // Mettre à jour les données
     Object.assign(pageContent, {
       ...updateData,
-      modifiedBy: req.admin._id,
       lastModified: new Date()
     });
 
     await pageContent.save();
 
-    console.log(`✅ Page ${pageId} mise à jour avec succès par ${req.admin.email}`);
+    console.log(`✅ Page ${pageId} mise à jour avec succès`);
 
     res.json({
       success: true,
@@ -426,12 +404,12 @@ router.put('/pages/:pageId', authMiddleware, async (req, res) => {
   }
 });
 
-// Récupérer toutes les pages pour la liste
+// Récupérer toutes les pages pour la liste - VERSION SIMPLIFIÉE
 router.get('/pages', authMiddleware, async (req, res) => {
   try {
     // Récupérer les pages existantes
     const pages = await PageContent.find()
-      .select('pageId title lastModified currentVersion status')
+      .select('pageId title lastModified status')
       .sort({ pageId: 1 });
 
     // Vérifier que toutes les pages requises existent
@@ -446,13 +424,12 @@ router.get('/pages', authMiddleware, async (req, res) => {
         await createDefaultPageContent(pageId);
       } catch (createError) {
         console.error(`❌ Erreur création page ${pageId}:`, createError);
-        // Continuer avec les autres pages
       }
     }
 
     // Récupérer à nouveau avec les pages créées
     const allPages = await PageContent.find()
-      .select('pageId title lastModified currentVersion status')
+      .select('pageId title lastModified status')
       .sort({ pageId: 1 });
 
     // Enrichir avec des métadonnées
@@ -466,8 +443,7 @@ router.get('/pages', authMiddleware, async (req, res) => {
     res.json({
       success: true,
       data: enrichedPages,
-      totalPages: enrichedPages.length,
-      missingPagesCreated: missingPages.length
+      totalPages: enrichedPages.length
     });
   } catch (error) {
     console.error('Erreur récupération pages:', error);
@@ -478,149 +454,21 @@ router.get('/pages', authMiddleware, async (req, res) => {
   }
 });
 
-// Dupliquer une page
-router.post('/pages/:pageId/duplicate', authMiddleware, async (req, res) => {
-  try {
-    const { pageId } = req.params;
-    const { newPageId, newTitle } = req.body;
+// SUPPRIMER TOUTES LES ROUTES DE VERSIONS ET CONFIGURATIONS COMPLEXES
+// Plus de routes pour:
+// - /pages/:pageId/history
+// - /pages/:pageId/restore/:versionNumber
+// - /pages/:pageId/autosave
+// - /pages/:pageId/create-version
 
-    // Validation
-    if (!newPageId || !newTitle) {
-      return res.status(400).json({ 
-        error: 'Nouvel ID et titre requis'
-      });
-    }
-
-    if (!/^[a-z]+$/.test(newPageId)) {
-      return res.status(400).json({ 
-        error: 'L\'ID doit contenir uniquement des lettres minuscules'
-      });
-    }
-
-    const originalPage = await PageContent.findOne({ pageId });
-    if (!originalPage) {
-      return res.status(404).json({ error: 'Page source non trouvée' });
-    }
-
-    // Vérifier que la nouvelle page n'existe pas
-    const existingPage = await PageContent.findOne({ pageId: newPageId });
-    if (existingPage) {
-      return res.status(409).json({ error: 'Une page avec cet ID existe déjà' });
-    }
-
-    // Créer la page dupliquée
-    const mongoose = require('mongoose');
-    const duplicatedPage = new PageContent({
-      pageId: newPageId,
-      title: newTitle,
-      metaDescription: `${originalPage.metaDescription} (copie)`,
-      sections: originalPage.sections.map(section => ({
-        ...section.toObject(),
-        id: new mongoose.Types.ObjectId().toString()
-      })),
-      status: 'draft', // Commencer en brouillon
-      modifiedBy: req.admin._id,
-      currentVersion: 1,
-      versions: [{
-        versionNumber: 1,
-        title: newTitle,
-        metaDescription: `${originalPage.metaDescription} (copie)`,
-        sections: JSON.parse(JSON.stringify(originalPage.sections)),
-        createdAt: new Date(),
-        comment: `Dupliqué depuis ${pageId} par ${req.admin.email}`,
-        createdBy: req.admin._id
-      }]
-    });
-
-    await duplicatedPage.save();
-
-    console.log(`✅ Page ${pageId} dupliquée vers ${newPageId} par ${req.admin.email}`);
-
-    res.json({
-      success: true,
-      data: duplicatedPage,
-      message: 'Page dupliquée avec succès'
-    });
-  } catch (error) {
-    console.error('Erreur duplication page:', error);
-    res.status(500).json({ 
-      error: 'Erreur lors de la duplication',
-      message: process.env.NODE_ENV === 'development' ? error.message : 'Erreur interne'
-    });
-  }
-});
-
-
-// Réorganiser les sections d'une page
-router.post('/pages/:pageId/reorder', authMiddleware, async (req, res) => {
-  try {
-    const { pageId } = req.params;
-    const { sectionOrders } = req.body; // [{ id, order }, ...]
-
-    const pageContent = await PageContent.findOne({ pageId });
-    if (!pageContent) {
-      return res.status(404).json({ error: 'Page non trouvée' });
-    }
-
-    pageContent.reorderSections(sectionOrders);
-    pageContent.modifiedBy = req.admin._id;
-    await pageContent.save();
-
-    res.json({
-      success: true,
-      data: pageContent
-    });
-  } catch (error) {
-    console.error('Erreur réorganisation sections:', error);
-    res.status(500).json({ error: 'Erreur serveur' });
-  }
-});
-
-// Upload d'image pour les sections
-router.post('/pages/upload-image', authMiddleware, async (req, res) => {
-  try {
-    // Ici vous devez implémenter l'upload d'images
-    // Exemple avec multer et Cloudinary
-
-    if (!req.file) {
-      return res.status(400).json({ error: 'Aucun fichier fourni' });
-    }
-
-    // Upload vers votre service (Cloudinary, S3, etc.)
-    // const imageUrl = await uploadToCloudinary(req.file);
-
-    // Pour l'instant, on simule
-    const imageUrl = `/uploads/${req.file.filename}`;
-
-    res.json({
-      success: true,
-      data: {
-        url: imageUrl,
-        alt: req.body.alt || ''
-      }
-    });
-  } catch (error) {
-    console.error('Erreur upload image:', error);
-    res.status(500).json({ error: 'Erreur upload' });
-  }
-});
-
-// Fonction utilitaire pour créer le contenu par défaut d'une page
+// Fonction utilitaire simplifiée pour créer le contenu par défaut
 async function createDefaultPageContent(pageId) {
   console.log(`🔧 Création du contenu par défaut pour: ${pageId}`);
 
   const pageData = defaultContents[pageId];
   if (!pageData) {
-    console.error(`❌ Contenu par défaut non trouvé pour la page: ${pageId}`);
     throw new Error(`Contenu par défaut non trouvé pour la page: ${pageId}`);
   }
-
-  console.log(`📝 Données à créer:`, {
-    pageId,
-    title: pageData.title,
-    sectionsCount: pageData.sections?.length || 0,
-    metaDescription: pageData.metaDescription ? 'Oui' : 'Non'
-  });
 
   try {
     const pageContent = new PageContent({
@@ -628,19 +476,7 @@ async function createDefaultPageContent(pageId) {
       title: pageData.title,
       metaDescription: pageData.metaDescription,
       sections: pageData.sections || [],
-      currentVersion: 1,
-      status: 'published',
-      versions: [{
-        versionNumber: 1,
-        title: pageData.title,
-        metaDescription: pageData.metaDescription,
-        sections: JSON.parse(JSON.stringify(pageData.sections || [])),
-        createdAt: new Date(),
-        comment: 'Version initiale créée automatiquement'
-      }],
-      autoSave: {
-        enabled: true
-      }
+      status: 'published'
     });
 
     await pageContent.save();
@@ -653,7 +489,7 @@ async function createDefaultPageContent(pageId) {
   }
 }
 
-// Fonctions utilitaires pour les métadonnées des pages
+// Fonctions utilitaires (inchangées)
 function getPageDisplayName(pageId) {
   const names = {
     home: 'Accueil',
@@ -693,120 +529,5 @@ function getPageDescription(pageId) {
   return descriptions[pageId] || 'Page du site web';
 }
 
-// routes/admin.js - Ajouts pour la gestion des versions
-
-// Récupérer l'historique d'une page
-router.get('/pages/:pageId/history', authMiddleware, async (req, res) => {
-  try {
-    const { pageId } = req.params;
-
-    const pageContent = await PageContent.findOne({ pageId })
-      .populate('versions.createdBy', 'email')
-      .populate('modifiedBy', 'email');
-
-    if (!pageContent) {
-      return res.status(404).json({ error: 'Page non trouvée' });
-    }
-
-    const history = pageContent.getVersionHistory();
-
-    res.json({
-      success: true,
-      data: {
-        currentVersion: pageContent.currentVersion,
-        history: history
-      }
-    });
-  } catch (error) {
-    console.error('Erreur récupération historique:', error);
-    res.status(500).json({ error: 'Erreur serveur' });
-  }
-});
-
-// Restaurer une version spécifique
-router.post('/pages/:pageId/restore/:versionNumber', authMiddleware, async (req, res) => {
-  try {
-    const { pageId, versionNumber } = req.params;
-    const { comment } = req.body;
-
-    const pageContent = await PageContent.findOne({ pageId });
-    if (!pageContent) {
-      return res.status(404).json({ error: 'Page non trouvée' });
-    }
-
-    pageContent.restoreVersion(parseInt(versionNumber), req.admin._id);
-
-    // Ajouter un commentaire pour la restauration
-    if (comment) {
-      const currentVersion = pageContent.versions[pageContent.versions.length - 1];
-      if (currentVersion) {
-        currentVersion.comment = `Restauration v${versionNumber}: ${comment}`;
-      }
-    }
-
-    await pageContent.save();
-
-    console.log(`✅ Version ${versionNumber} restaurée pour la page ${pageId}`);
-
-    res.json({
-      success: true,
-      data: pageContent,
-      message: `Version ${versionNumber} restaurée avec succès`
-    });
-  } catch (error) {
-    console.error('Erreur restauration version:', error);
-    res.status(500).json({ error: error.message || 'Erreur serveur' });
-  }
-});
-
-// Sauvegarde automatique
-router.post('/pages/:pageId/autosave', authMiddleware, async (req, res) => {
-  try {
-    const { pageId } = req.params;
-    const data = req.body;
-
-    const pageContent = await PageContent.findOne({ pageId });
-    if (!pageContent) {
-      return res.status(404).json({ error: 'Page non trouvée' });
-    }
-
-    await pageContent.autoSaveData(data, req.admin._id);
-
-    res.json({
-      success: true,
-      message: 'Sauvegarde automatique effectuée',
-      timestamp: new Date()
-    });
-  } catch (error) {
-    console.error('Erreur sauvegarde automatique:', error);
-    res.status(500).json({ error: 'Erreur serveur' });
-  }
-});
-
-// Créer une version avec commentaire
-router.post('/pages/:pageId/create-version', authMiddleware, async (req, res) => {
-  try {
-    const { pageId } = req.params;
-    const { comment } = req.body;
-
-    const pageContent = await PageContent.findOne({ pageId });
-    if (!pageContent) {
-      return res.status(404).json({ error: 'Page non trouvée' });
-    }
-
-    const newVersion = pageContent.createVersion(comment || 'Version manuelle');
-    pageContent.modifiedBy = req.admin._id;
-    await pageContent.save();
-
-    res.json({
-      success: true,
-      data: newVersion,
-      message: 'Version créée avec succès'
-    });
-  } catch (error) {
-    console.error('Erreur création version:', error);
-    res.status(500).json({ error: 'Erreur serveur' });
-  }
-});
 
 module.exports = router;
