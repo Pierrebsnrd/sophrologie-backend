@@ -4,7 +4,48 @@
   "private": true,
   "scripts": {
     "start": "node ./bin/www",
-    "create-admin": "node scripts/createAdmin.js"
+    "dev": "nodemon ./bin/www",
+    "create-admin": "node scripts/createAdmin.js",
+    
+    "_comment_pages": "=== GESTION DES PAGES ===",
+    "pages:init": "node scripts/pageManager.js init",
+    "pages:status": "node scripts/pageManager.js status",
+    "pages:verify": "node scripts/pageManager.js verify",
+    "pages:backup": "node scripts/pageManager.js backup",
+    "pages:optimize": "node scripts/pageManager.js optimize",
+    "pages:sync": "node scripts/pageManager.js sync",
+    "pages:restore": "node scripts/pageManager.js restore",
+    "pages:help": "node scripts/pageManager.js help",
+    
+    "_comment_integrity": "=== VÉRIFICATION D'INTÉGRITÉ ===",
+    "pages:check": "node scripts/pageIntegrityChecker.js check",
+    "pages:fix": "node scripts/pageIntegrityChecker.js fix",
+    "pages:health": "node scripts/pageIntegrityChecker.js health",
+    "pages:pricing-fix": "node scripts/pageIntegrityChecker.js pricing-fix",
+    "pages:testimonials-fix": "node scripts/pageIntegrityChecker.js testimonials-fix",
+    "pages:check-all": "node scripts/pageIntegrityChecker.js all",
+    
+    "_comment_aliases": "=== ALIASES POUR COMPATIBILITÉ ===",
+    "pages:migrate": "npm run pages:init",
+    "pages:cleanup": "npm run pages:optimize && npm run pages:check",
+    "verify-pages": "echo 'DEPRECATED: Utilisez npm run pages:verify' && npm run pages:verify",
+    "init-pages": "echo 'DEPRECATED: Utilisez npm run pages:init' && npm run pages:init",
+    
+    "_comment_setup": "=== SCRIPTS DE SETUP COMPLET ===",
+    "setup": "npm run pages:init && npm run pages:check && npm run pages:status",
+    "setup:fresh": "npm run pages:backup && npm run pages:init && npm run pages:check && npm run pages:verify",
+    "setup:dev": "npm run pages:check && npm run pages:fix && npm run pages:optimize && npm run pages:status",
+    
+    "_comment_maintenance": "=== SCRIPTS DE MAINTENANCE ===",
+    "maintenance:backup": "npm run pages:backup",
+    "maintenance:verify": "npm run pages:check && npm run pages:verify && npm run pages:status",
+    "maintenance:optimize": "npm run pages:optimize && npm run pages:check",
+    "maintenance:full": "npm run pages:backup && npm run pages:check-all && npm run pages:optimize && npm run pages:health",
+    
+    "_comment_wysiwyg": "=== SUPPORT ÉDITEUR WYSIWYG ===",
+    "editor:prepare": "npm run pages:check && npm run pages:fix",
+    "editor:test": "npm run pages:check && npm run pages:health",
+    "editor:reset": "npm run pages:backup && npm run pages:init && npm run pages:check"
   },
   "dependencies": {
     "bcrypt": "^6.0.0",
@@ -19,5 +60,8 @@
     "mongoose": "^8.16.4",
     "morgan": "~1.9.1",
     "nodemailer": "^7.0.5"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
   }
 }
