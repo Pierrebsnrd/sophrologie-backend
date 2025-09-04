@@ -7,12 +7,7 @@
     "dev": "nodemon ./bin/www",
     "create-admin": "node scripts/createAdmin.js",
     
-    "_comment_deprecated": "Scripts obsolètes - remplacés par pageManager",
-    "init-pages": "echo 'DEPRECATED: Utilisez npm run pages:init' && node scripts/pageManager.js init",
-    "verify-pages": "echo 'DEPRECATED: Utilisez npm run pages:verify' && node scripts/pageManager.js verify",
-    "manage": "echo 'DEPRECATED: Utilisez npm run pages:*' && node scripts/pageManager.js help",
-    
-    "_comment_new": "Nouveaux scripts unifiés avec pageManager",
+    "_comment_pages": "=== GESTION DES PAGES ===",
     "pages:init": "node scripts/pageManager.js init",
     "pages:status": "node scripts/pageManager.js status",
     "pages:verify": "node scripts/pageManager.js verify",
@@ -22,18 +17,35 @@
     "pages:restore": "node scripts/pageManager.js restore",
     "pages:help": "node scripts/pageManager.js help",
     
-    "_comment_aliases": "Aliases pour compatibilité",
+    "_comment_integrity": "=== VÉRIFICATION D'INTÉGRITÉ ===",
+    "pages:check": "node scripts/pageIntegrityChecker.js check",
+    "pages:fix": "node scripts/pageIntegrityChecker.js fix",
+    "pages:health": "node scripts/pageIntegrityChecker.js health",
+    "pages:pricing-fix": "node scripts/pageIntegrityChecker.js pricing-fix",
+    "pages:testimonials-fix": "node scripts/pageIntegrityChecker.js testimonials-fix",
+    "pages:check-all": "node scripts/pageIntegrityChecker.js all",
+    
+    "_comment_aliases": "=== ALIASES POUR COMPATIBILITÉ ===",
     "pages:migrate": "npm run pages:init",
-    "pages:cleanup": "npm run pages:optimize",
+    "pages:cleanup": "npm run pages:optimize && npm run pages:check",
+    "verify-pages": "echo 'DEPRECATED: Utilisez npm run pages:verify' && npm run pages:verify",
+    "init-pages": "echo 'DEPRECATED: Utilisez npm run pages:init' && npm run pages:init",
     
-    "_comment_setup": "Script de setup complet",
-    "setup": "npm run pages:init && npm run pages:verify && npm run pages:status",
-    "setup:fresh": "npm run pages:backup && npm run pages:init && npm run pages:verify",
+    "_comment_setup": "=== SCRIPTS DE SETUP COMPLET ===",
+    "setup": "npm run pages:init && npm run pages:check && npm run pages:status",
+    "setup:fresh": "npm run pages:backup && npm run pages:init && npm run pages:check && npm run pages:verify",
+    "setup:dev": "npm run pages:check && npm run pages:fix && npm run pages:optimize && npm run pages:status",
     
-    "_comment_maintenance": "Scripts de maintenance",
+    "_comment_maintenance": "=== SCRIPTS DE MAINTENANCE ===",
     "maintenance:backup": "npm run pages:backup",
-    "maintenance:verify": "npm run pages:verify && npm run pages:status",
-    "maintenance:optimize": "npm run pages:optimize && npm run pages:verify"
+    "maintenance:verify": "npm run pages:check && npm run pages:verify && npm run pages:status",
+    "maintenance:optimize": "npm run pages:optimize && npm run pages:check",
+    "maintenance:full": "npm run pages:backup && npm run pages:check-all && npm run pages:optimize && npm run pages:health",
+    
+    "_comment_wysiwyg": "=== SUPPORT ÉDITEUR WYSIWYG ===",
+    "editor:prepare": "npm run pages:check && npm run pages:fix",
+    "editor:test": "npm run pages:check && npm run pages:health",
+    "editor:reset": "npm run pages:backup && npm run pages:init && npm run pages:check"
   },
   "dependencies": {
     "bcrypt": "^6.0.0",
