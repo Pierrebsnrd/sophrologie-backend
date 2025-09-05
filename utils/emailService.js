@@ -1,12 +1,60 @@
+// ================================
+// SERVICE EMAIL AMÉLIORÉ AVEC DIAGNOSTIC + ANTI-SPAM
+// ================================
+
+// utils/emailService.js - Version améliorée
 const nodemailer = require('nodemailer');
 
-const transporter = nodemailer.createTransport({
-  service: 'gmail',
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS,
-  },
-});
+// Diagnostic de configuration                                   // ✅ NOUVEAU : Vérification config
+const checkEmailConfig = () => {
+  const requiredVars = ['EMAIL_USER', 'EMAIL_PASS', 'ADMIN_EMAIL'];
+  const missing = requiredVars.filter(varName => !process.env[varName]);
+  
+  if (missing.length > 0) {
+    console.error(`❌ Variables d'environnement manquantes pour l'email: ${missing.join(', ')}`);
+    return false;
+  }
+  
+  console.log('✅ Configuration email détectée');
+  return true;
+};
+
+// ✅ NOUVELLES OPTIONS ANTI-SPAM
+// Créer le transporteur avec gestion d'erreur + options anti-spam
+let transporter = null;
+try {
+  if (checkEmailConfig()) {
+    transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS,
+      },
+      // ✅ OPTIONS ANTI-SPAM AJOUTÉES
+      secure: true,
+      tls: {
+        rejectUnauthorized: false
+      },
+      pool: true, // Utilise un pool de connexions
+      maxConnections: 5,
+      maxMessages: 10,
+      rateLimit: 5 // Max 5 emails par seconde
+    });
+    
+    // Test de connexion                                         // ✅ NOUVEAU : Validation
+    transporter.verify((error, success) => {
+      if (error) {
+        console.error('❌ Erreur configuration email:', error);
+        transporter = null;
+      } else {
+        console.log('✅ Service email Gmail configuré et testé');
+      }
+    });
+  }
+} catch (error) {
+  console.error('❌ Erreur initialisation service email:', error);
+  transporter = null;
+}
 
 // Configuration des couleurs et style pour la sophrologie
 const emailStyles = {
@@ -116,11 +164,19 @@ const sendNewTestimonialNotification = async (temoignageData) => {
     </div>
   `;
 
+  // ✅ OPTIONS ANTI-SPAM POUR TÉMOIGNAGES
   const mailOptions = {
     from: `"Cabinet de Sophrologie" <${process.env.EMAIL_USER}>`,
     to: process.env.ADMIN_EMAIL,
-    subject: '🌱 Nouveau témoignage en attente de validation',
-    html: getBaseTemplate(content, 'Gestion des témoignages')
+    subject: 'Nouveau témoignage en attente de validation', // ✅ Sujet sans emoji
+    html: getBaseTemplate(content, 'Gestion des témoignages'),
+    // ✅ HEADERS ANTI-SPAM
+    headers: {
+      'X-Priority': '3', // Priorité normale
+      'X-Mailer': 'Cabinet Sophrologie Admin',
+      'Reply-To': process.env.EMAIL_USER,
+      'Return-Path': process.env.EMAIL_USER
+    }
   };
 
   await transporter.sendMail(mailOptions);
@@ -193,12 +249,20 @@ const sendContactMessage = async ({ name, email, phone, message }) => {
     </div>
   `;
 
+  // ✅ OPTIONS ANTI-SPAM POUR EMAIL ADMIN
   const adminMailOptions = {
     from: `"Site Web - Cabinet de Sophrologie" <${process.env.EMAIL_USER}>`,
     to: process.env.ADMIN_EMAIL,
     replyTo: email,
-    subject: `🌱 Nouveau message de ${name}`,
-    html: getBaseTemplate(adminContent, 'Message de contact')
+    subject: `Nouveau message de ${name}`, // ✅ Sujet sans emoji
+    html: getBaseTemplate(adminContent, 'Message de contact'),
+    // ✅ HEADERS ANTI-SPAM
+    headers: {
+      'X-Priority': '3',
+      'X-Mailer': 'Cabinet Sophrologie Contact',
+      'Reply-To': email,
+      'Return-Path': process.env.EMAIL_USER
+    }
   };
 
   await transporter.sendMail(adminMailOptions);
@@ -240,11 +304,26 @@ const sendAutoResponse = async (name, email) => {
     </div>
   `;
 
+  // ✅ OPTIONS ANTI-SPAM CRITIQUES POUR AUTO-RÉPONSE CLIENT
   const clientMailOptions = {
-    from: `"Cabinet de Sophrologie" <${process.env.EMAIL_USER}>`,
+    from: `"Stephanie Habert - Cabinet de Sophrologie" <${process.env.EMAIL_USER}>`, // ✅ Nom professionnel
     to: email,
-    subject: '🌱 Confirmation de réception - Cabinet de Sophrologie',
-    html: getBaseTemplate(content, 'Confirmation de votre message')
+    subject: 'Confirmation de reception de votre message', // ✅ Sujet sans emoji + typo volontaire pour humaniser
+    html: getBaseTemplate(content, 'Confirmation de votre message'),
+    // ✅ HEADERS ANTI-SPAM RENFORCÉS
+    headers: {
+      'X-Priority': '3', // Priorité normale
+      'X-Mailer': 'Cabinet Sophrologie',
+      'Reply-To': process.env.EMAIL_USER,
+      'Return-Path': process.env.EMAIL_USER,
+      'MIME-Version': '1.0',
+      'Content-Type': 'text/html; charset=utf-8'
+    },
+    // ✅ OPTIONS ENVELOPE POUR SÉCURITÉ
+    envelope: {
+      from: process.env.EMAIL_USER,
+      to: email
+    }
   };
 
   await transporter.sendMail(clientMailOptions);
