@@ -12,8 +12,6 @@ const cors = require('cors');
 const ensureDB = require('./middleware/connectDB');
 
 // Routes
-const indexRouter = require('./routes/index');
-const usersRouter = require('./routes/users');
 const adminRoutes = require('./routes/admin');
 const temoignageRoutes = require('./routes/temoignage');
 const contactRoutes = require('./routes/contact');
@@ -38,10 +36,6 @@ app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
-
-// Routes publiques (sans besoin DB)
-app.use('/', indexRouter);
-app.use('/users', usersRouter);
 
 // Routes protégées par la connexion DB
 app.use('/admin', ensureDB, adminRoutes);
