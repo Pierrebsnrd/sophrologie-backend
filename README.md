@@ -2,6 +2,36 @@
 
 API REST pour l'application de sophrologie de Stéphanie Habert.
 
+## 📋 Table des matières
+
+- [🚀 Installation et démarrage](#-installation-et-démarrage)
+  - [Prérequis](#prérequis)
+  - [Installation](#installation)
+  - [Configuration](#configuration)
+  - [Démarrage](#démarrage)
+- [🛠 Stack technique](#-stack-technique)
+- [📁 Structure du projet](#-structure-du-projet)
+- [🌐 API Routes](#-api-routes)
+  - [📖 Routes publiques](#-routes-publiques)
+  - [🔒 Routes admin (JWT requis)](#-routes-admin-jwt-requis)
+- [📋 Formats de données](#-formats-de-données)
+  - [Témoignage](#témoignage)
+  - [Message de contact](#message-de-contact)
+  - [Réponse API standard](#réponse-api-standard)
+- [🔒 Sécurité](#-sécurité)
+  - [Mesures implémentées](#mesures-implémentées)
+  - [Authentification](#authentification)
+- [🗄️ Base de données](#️-base-de-données)
+  - [Collections MongoDB](#collections-mongodb)
+  - [Connexion](#connexion)
+- [⚡ Fonctionnalités](#-fonctionnalités)
+  - [Gestion des témoignages](#gestion-des-témoignages)
+  - [Messages de contact](#messages-de-contact)
+  - [Administration](#administration)
+- [🌐 Hébergement](#-hébergement)
+  - [Vercel (Recommandé)](#vercel-recommandé)
+  - [Configuration MongoDB](#configuration-mongodb)
+
 ## 🚀 Installation et démarrage
 
 ### Prérequis
