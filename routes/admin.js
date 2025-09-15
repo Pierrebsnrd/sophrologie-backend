@@ -9,6 +9,7 @@ const authMiddleware = require('../middleware/auth');
 // Routes d'authentification
 router.post('/login', AdminController.login);
 router.get('/profile', authMiddleware, AdminController.getProfile);
+router.patch('/profile/password', authMiddleware, AdminController.updatePassword);
 
 // Routes de gestion des témoignages (admin)
 router.get('/temoignages', authMiddleware, TemoignageController.getAll);

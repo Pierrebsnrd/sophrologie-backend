@@ -1,3 +1,4 @@
+// models/admin.js
 const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
 
@@ -27,29 +28,33 @@ const adminSchema = new mongoose.Schema({
   }
 });
 
-// Méthode pour vérifier le mot de passe avec validation
-adminSchema.methods.comparePassword = async function(password) {
-  // Validation des paramètres
-  if (!password) {
-    console.error('❌ Mot de passe manquant pour la comparaison');
-    return false;
-  }
+// Middleware pour hasher avant sauvegarde
+adminSchema.pre('save', async function(next) {
+  // Ne hasher que si le mot de passe a été modifié
+  if (!this.isModified('passwordHash')) return next();
   
-  // Vérifier si passwordHash existe
-  if (!this.passwordHash) {
-    console.error('❌ Hash du mot de passe manquant pour l\'admin:', this.email);
-    console.error('📋 Champs disponibles:', Object.keys(this.toObject()));
+  try {
+    const saltRounds = 12;
+    this.passwordHash = await bcrypt.hash(this.passwordHash, saltRounds);
+    next();
+  } catch (error) {
+    next(error);
+  }
+});
+
+// Méthode pour comparer les mots de passe
+adminSchema.methods.comparePassword = async function(password) {
+  if (!password || !this.passwordHash) {
     return false;
   }
   
   try {
     return await bcrypt.compare(password, this.passwordHash);
   } catch (error) {
-    console.error('❌ Erreur lors de la comparaison bcrypt:', error);
+    console.error('Erreur comparaison mot de passe:', error);
     return false;
   }
 };
 
 const Admin = mongoose.model('Admin', adminSchema);
-
-module.exports = Admin
+module.exports = Admin;

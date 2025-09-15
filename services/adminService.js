@@ -6,7 +6,7 @@ class AdminService {
   static async authenticate(email, password) {
     try {
       console.log('🔍 Tentative de connexion pour:', email);
-      
+
       const admin = await Admin.findOne({ email: email.toLowerCase() });
       if (!admin) {
         console.log('❌ Admin non trouvé pour:', email);
@@ -49,9 +49,9 @@ class AdminService {
   static async getProfile(adminId) {
     try {
       console.log('🔍 Récupération profil pour admin ID:', adminId);
-      
+
       const admin = await Admin.findById(adminId).select('-passwordHash');
-      
+
       if (!admin) {
         console.log('❌ Admin non trouvé avec ID:', adminId);
         return { success: false, error: 'Admin non trouvé' };
@@ -76,6 +76,39 @@ class AdminService {
       return { success: true, data: profileData };
     } catch (error) {
       console.error('❌ Erreur récupération profil:', error);
+      return { success: false, error: 'Erreur serveur' };
+    }
+  }
+  // services/adminService.js
+  static async updatePassword(adminId, currentPassword, newPassword) {
+    try {
+      // Validation
+      if (newPassword.length < 8) {
+        return {
+          success: false,
+          error: 'Le nouveau mot de passe doit contenir au moins 8 caractères'
+        };
+      }
+
+      // Récupérer l'admin
+      const admin = await Admin.findById(adminId);
+      if (!admin) {
+        return { success: false, error: 'Administrateur non trouvé' };
+      }
+
+      // Vérifier le mot de passe actuel
+      const isCurrentPasswordValid = await admin.comparePassword(currentPassword);
+      if (!isCurrentPasswordValid) {
+        return { success: false, error: 'Mot de passe actuel incorrect' };
+      }
+
+      // Assigner le nouveau mot de passe (sera hashé automatiquement)
+      admin.passwordHash = newPassword;
+      await admin.save();
+
+      return { success: true, message: 'Mot de passe changé avec succès' };
+    } catch (error) {
+      console.error('Erreur changement mot de passe:', error);
       return { success: false, error: 'Erreur serveur' };
     }
   }
