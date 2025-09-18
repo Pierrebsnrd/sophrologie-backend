@@ -42,4 +42,13 @@ app.use('/admin', ensureDB, adminRoutes);
 app.use('/temoignage', ensureDB, temoignageRoutes);
 app.use('/contact', ensureDB, contactRoutes);
 
+// Gestion d'erreurs centralisée
+const { errorHandler, notFound } = require('./middleware/errorHandler');
+
+// Middleware pour routes non trouvées (doit être après toutes les routes)
+app.use(notFound);
+
+// Middleware de gestion d'erreurs (doit être en dernier)
+app.use(errorHandler);
+
 module.exports = app;
