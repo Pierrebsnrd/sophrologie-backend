@@ -56,7 +56,7 @@ typings/
 
 # dotenv environment variables file
 .env
-scripts/
+scripts/scriptTTLindex.js
 
 # next.js build output
 .next

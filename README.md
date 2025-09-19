@@ -59,13 +59,21 @@ ADMIN_PASSWORD=votre_mot_de_passe
 
 # Environnement
 NODE_ENV=development
-PORT=3001
+PORT=3000
 ```
 
 ### Démarrage
 ```bash
 # Démarrer le serveur
 yarn start
+
+# Créer un utilisateur admin
+yarn create-admin
+
+# Tests
+yarn test              # Run Jest tests
+yarn test:watch        # Run tests in watch mode
+yarn test:coverage     # Run tests with coverage report
 ```
 
 ## 🛠 Stack technique
@@ -82,28 +90,37 @@ yarn start
 
 ```
 backend/
-├── controllers/         # Logique métier des routes
-│   ├── adminController.js
-│   ├── contactController.js
-│   └── temoignageController.js
-├── middleware/          # Middlewares personnalisés
-│   ├── auth.js         # Authentification JWT
-│   └── connectDB.js    # Connexion base de données
-├── models/             # Modèles MongoDB (Mongoose)
-│   ├── admin.js
-│   ├── contact.js
-│   └── temoignage.js
-├── routes/             # Définition des routes
-│   ├── admin.js        # Routes d'administration
-│   ├── contact.js      # Routes de contact
-│   └── temoignage.js   # Routes témoignages
-├── services/           # Logique métier réutilisable
-│   ├── adminService.js
-│   ├── contactService.js
-│   └── temoignageService.js
+├── bin/                # Scripts de démarrage
+│   └── www            # Point d'entrée serveur
+├── controllers/        # Logique métier des routes
+│   ├── adminController.js    # Gestion des admins
+│   ├── contactController.js  # Traitement des contacts
+│   └── temoignageController.js # Gestion des témoignages
+├── middleware/         # Middlewares personnalisés
+│   ├── auth.js        # Authentification JWT
+│   └── connectDB.js   # Connexion base de données
+├── models/            # Modèles MongoDB (Mongoose)
+│   ├── admin.js       # Schéma admin avec auth
+│   ├── contactMessage.js # Messages de contact
+│   └── temoignage.js  # Témoignages avec statut
+├── routes/            # Définition des routes API
+│   ├── admin.js       # Routes d'administration
+│   ├── contact.js     # Routes de contact
+│   └── temoignage.js  # Routes témoignages
+├── services/          # Logique métier réutilisable
+│   ├── adminService.js    # Services admin
+│   ├── contactService.js  # Services contact
+│   └── temoignageService.js # Services témoignages
+├── scripts/           # Scripts utilitaires
+│   └── createAdmin.js # Création d'admins
+├── tests/             # Tests unitaires (Jest)
+│   ├── setup.js       # Configuration tests
+│   ├── services/      # Tests des services
+│   └── middleware/    # Tests des middlewares
 ├── config/
 │   └── db.js          # Configuration MongoDB
-└── app.js             # Configuration Express
+├── app.js             # Configuration Express
+└── vercel.json        # Configuration déploiement Vercel
 ```
 
 ## 🌐 API Routes
@@ -206,6 +223,23 @@ Authorization: Bearer <jwt_token>
 - ✅ Authentification sécurisée
 - ✅ Session avec JWT
 - ✅ Interface de gestion complète
+
+## 👤 Gestion des Admins
+
+### Création d'un compte administrateur
+
+Pour créer ou réinitialiser un compte admin :
+
+```bash
+yarn create-admin
+```
+
+Le script interactif vous permet de :
+- Créer un nouveau compte administrateur
+- Réinitialiser le mot de passe d'un admin existant
+- Valider la création avec un test de connexion
+
+**Prérequis** : La base de données MongoDB doit être accessible avec la `CONNECTION_STRING` configurée.
 
 ## 🌐 Hébergement
 
