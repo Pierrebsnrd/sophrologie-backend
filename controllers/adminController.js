@@ -1,4 +1,3 @@
-// controllers/adminController.js
 const AdminService = require('../services/adminService');
 const { asyncHandler } = require('../middleware/errorHandler');
 

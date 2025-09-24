@@ -1,4 +1,3 @@
-// services/contactService.js
 const ContactMessage = require('../models/contactMessage');
 
 // Import avec gestion d'erreur
@@ -19,7 +18,7 @@ class ContactService {
             await ContactMessage.create(messageData);
             console.log("✅ Message de contact sauvé en base");
 
-            // Envoyer les emails (admin + auto-réponse client) - OPTIONNEL
+            // Envoyer les emails (admin + auto-réponse client)
             if (sendContactMessage) {
                 try {
                     await sendContactMessage(messageData);

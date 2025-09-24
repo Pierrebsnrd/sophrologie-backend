@@ -7,7 +7,6 @@ const contactMessageSchema = new mongoose.Schema({
   message: { type: String, required: true },
   answered: { type: Boolean, default: false },
   
-  // ✅ MODIFICATION : Ajouter TTL sur createdAt
   createdAt: { 
     type: Date, 
     default: Date.now,

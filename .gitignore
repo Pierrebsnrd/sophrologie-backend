@@ -61,3 +61,5 @@ scripts/scriptTTLindex.js
 # next.js build output
 .next
 
+# utils/emailServiceOVH.js
+utils/emailServiceOVH.js

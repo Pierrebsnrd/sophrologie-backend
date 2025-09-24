@@ -1,4 +1,3 @@
-// routes/temoignage.js - Version refactorisée
 const express = require('express');
 const router = express.Router();
 const TemoignageController = require('../controllers/temoignageController');

@@ -1,4 +1,3 @@
-// services/adminService.js
 const jwt = require('jsonwebtoken');
 const Admin = require('../models/admin');
 
@@ -79,7 +78,7 @@ class AdminService {
       return { success: false, error: 'Erreur serveur' };
     }
   }
-  // services/adminService.js
+
   static async updatePassword(adminId, currentPassword, newPassword) {
     try {
       // Validation

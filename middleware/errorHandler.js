@@ -1,4 +1,3 @@
-// middleware/errorHandler.js
 const mongoose = require('mongoose');
 
 // Middleware de gestion d'erreurs centralisé

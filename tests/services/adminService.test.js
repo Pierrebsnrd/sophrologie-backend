@@ -1,4 +1,3 @@
-// tests/services/adminService.test.js
 const AdminService = require('../../services/adminService');
 const Admin = require('../../models/admin');
 const bcrypt = require('bcrypt');

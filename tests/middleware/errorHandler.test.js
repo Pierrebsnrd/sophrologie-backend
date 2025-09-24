@@ -1,4 +1,3 @@
-// tests/middleware/errorHandler.test.js
 const request = require('supertest');
 const express = require('express');
 const { errorHandler, notFound, asyncHandler } = require('../../middleware/errorHandler');

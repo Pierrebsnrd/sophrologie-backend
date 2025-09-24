@@ -1,9 +1,8 @@
-// controllers/contactController.js
 const ContactService = require('../services/contactService');
 const { asyncHandler } = require('../middleware/errorHandler');
 
 // Fonction de validation du téléphone français (comme dans votre code)
-function isValidPhone(phone) {                          // ✅ Ajouté fonction validation
+function isValidPhone(phone) {
   if (!phone || !phone.trim()) return false; 
   const phoneRegex = /^(?:(?:\+33|0)[1-9](?:[0-9]{8}))$/;
   const cleanPhone = phone.replace(/[\s\.\-]/g, '');
@@ -12,11 +11,11 @@ function isValidPhone(phone) {                          // ✅ Ajouté fonction 
 
 class ContactController {
   static create = asyncHandler(async (req, res) => {
-    const { name, email, phone, message } = req.body;   // ✅ 'phone' au lieu de 'subject'
-    const errors = {};                                  // ✅ Object errors comme votre code
+    const { name, email, phone, message } = req.body;
+    const errors = {};
 
     // Validation nom
-    if (!name || !name.trim()) {                       // ✅ Validation détaillée
+    if (!name || !name.trim()) {
       errors.name = "Le prénom est requis.";
     } else if (name.trim().length < 2) {
       errors.name = "Le prénom doit contenir au moins 2 caractères.";
@@ -30,7 +29,7 @@ class ContactController {
       errors.email = "Veuillez entrer un email valide.";
     }
 
-    // Validation téléphone (obligatoire)             // ✅ Validation phone ajoutée
+    // Validation téléphone
     if (!phone || !phone.trim()) {
       errors.phone = "Le numéro de téléphone est requis.";
     } else if (!isValidPhone(phone)) {
@@ -44,14 +43,14 @@ class ContactController {
       errors.message = "Le message doit contenir au moins 10 caractères.";
     }
 
-    if (Object.keys(errors).length > 0) {              // ✅ Format errors comme votre code
+    if (Object.keys(errors).length > 0) {
       return res.status(400).json({ success: false, errors });
     }
 
     const result = await ContactService.create({
       name: name.trim(),
       email: email.trim().toLowerCase(),
-      phone: phone.trim(),                              // ✅ phone inclus
+      phone: phone.trim(),
       message: message.trim()
     });
 

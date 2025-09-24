@@ -1,11 +1,6 @@
-// ================================
-// SERVICE EMAIL AMÉLIORÉ AVEC DIAGNOSTIC + ANTI-SPAM
-// ================================
-
-// utils/emailService.js - Version améliorée
 const nodemailer = require('nodemailer');
 
-// Diagnostic de configuration                                   // ✅ NOUVEAU : Vérification config
+// Diagnostic de configuration
 const checkEmailConfig = () => {
   const requiredVars = ['EMAIL_USER', 'EMAIL_PASS', 'ADMIN_EMAIL'];
   const missing = requiredVars.filter(varName => !process.env[varName]);
@@ -19,7 +14,6 @@ const checkEmailConfig = () => {
   return true;
 };
 
-// ✅ NOUVELLES OPTIONS ANTI-SPAM
 // Créer le transporteur avec gestion d'erreur + options anti-spam
 let transporter = null;
 try {
@@ -30,7 +24,7 @@ try {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS,
       },
-      // ✅ OPTIONS ANTI-SPAM AJOUTÉES
+      // OPTIONS ANTI-SPAM AJOUTÉES
       secure: true,
       tls: {
         rejectUnauthorized: false
@@ -41,7 +35,7 @@ try {
       rateLimit: 5 // Max 5 emails par seconde
     });
     
-    // Test de connexion                                         // ✅ NOUVEAU : Validation
+    // Test de connexion
     transporter.verify((error, success) => {
       if (error) {
         console.error('❌ Erreur configuration email:', error);
@@ -58,7 +52,7 @@ try {
 
 // Configuration des couleurs et style pour la sophrologie
 const emailStyles = {
-  primaryColor: '#2c5530', // Vert apaisant
+  primaryColor: '#2c5530',
   secondaryColor: '#6b8e6b',
   accentColor: '#a8c8a8',
   backgroundColor: '#f8fdf8',
@@ -164,15 +158,15 @@ const sendNewTestimonialNotification = async (temoignageData) => {
     </div>
   `;
 
-  // ✅ OPTIONS ANTI-SPAM POUR TÉMOIGNAGES
+  // PTIONS ANTI-SPAM POUR TÉMOIGNAGES
   const mailOptions = {
     from: `"Cabinet de Sophrologie" <${process.env.EMAIL_USER}>`,
     to: process.env.ADMIN_EMAIL,
-    subject: 'Nouveau témoignage en attente de validation', // ✅ Sujet sans emoji
+    subject: 'Nouveau témoignage en attente de validation',
     html: getBaseTemplate(content, 'Gestion des témoignages'),
-    // ✅ HEADERS ANTI-SPAM
+    // HEADERS ANTI-SPAM
     headers: {
-      'X-Priority': '3', // Priorité normale
+      'X-Priority': '3',
       'X-Mailer': 'Cabinet Sophrologie Admin',
       'Reply-To': process.env.EMAIL_USER,
       'Return-Path': process.env.EMAIL_USER
@@ -182,7 +176,7 @@ const sendNewTestimonialNotification = async (temoignageData) => {
   await transporter.sendMail(mailOptions);
 };
 
-// Message de contact avec auto-réponse - AVEC TÉLÉPHONE OBLIGATOIRE
+// Message de contact avec auto-réponse
 const sendContactMessage = async ({ name, email, phone, message }) => {
   const dateFormatted = new Date().toLocaleDateString('fr-FR', {
     weekday: 'long',
@@ -249,14 +243,14 @@ const sendContactMessage = async ({ name, email, phone, message }) => {
     </div>
   `;
 
-  // ✅ OPTIONS ANTI-SPAM POUR EMAIL ADMIN
+  // OPTIONS ANTI-SPAM POUR EMAIL ADMIN
   const adminMailOptions = {
     from: `"Site Web - Cabinet de Sophrologie" <${process.env.EMAIL_USER}>`,
     to: process.env.ADMIN_EMAIL,
     replyTo: email,
-    subject: `Nouveau message de ${name}`, // ✅ Sujet sans emoji
+    subject: `Nouveau message de ${name}`,
     html: getBaseTemplate(adminContent, 'Message de contact'),
-    // ✅ HEADERS ANTI-SPAM
+    // HEADERS ANTI-SPAM
     headers: {
       'X-Priority': '3',
       'X-Mailer': 'Cabinet Sophrologie Contact',
@@ -304,13 +298,13 @@ const sendAutoResponse = async (name, email) => {
     </div>
   `;
 
-  // ✅ OPTIONS ANTI-SPAM CRITIQUES POUR AUTO-RÉPONSE CLIENT
+  // OPTIONS ANTI-SPAM CRITIQUES POUR AUTO-RÉPONSE CLIENT
   const clientMailOptions = {
     from: `"Stephanie Habert - Cabinet de Sophrologie" <${process.env.EMAIL_USER}>`, // ✅ Nom professionnel
     to: email,
-    subject: 'Confirmation de reception de votre message', // ✅ Sujet sans emoji + typo volontaire pour humaniser
+    subject: 'Confirmation de reception de votre message',
     html: getBaseTemplate(content, 'Confirmation de votre message'),
-    // ✅ HEADERS ANTI-SPAM RENFORCÉS
+    // HEADERS ANTI-SPAM RENFORCÉS
     headers: {
       'X-Priority': '3', // Priorité normale
       'X-Mailer': 'Cabinet Sophrologie',
@@ -319,7 +313,7 @@ const sendAutoResponse = async (name, email) => {
       'MIME-Version': '1.0',
       'Content-Type': 'text/html; charset=utf-8'
     },
-    // ✅ OPTIONS ENVELOPE POUR SÉCURITÉ
+    // OPTIONS ENVELOPE POUR SÉCURITÉ
     envelope: {
       from: process.env.EMAIL_USER,
       to: email

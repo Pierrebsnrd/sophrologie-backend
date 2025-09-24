@@ -23,7 +23,6 @@ const authMiddleware = async (req, res, next) => {
 
     console.log('✅ Admin authentifié:', { id: admin._id, email: admin.email });
     
-    // IMPORTANT: Stocker l'objet admin complet dans req.admin
     req.admin = admin;
     next();
   } catch (error) {

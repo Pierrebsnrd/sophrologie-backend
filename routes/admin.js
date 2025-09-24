@@ -1,4 +1,3 @@
-// routes/admin.js - Version refactorisée
 const express = require('express');
 const router = express.Router();
 const AdminController = require('../controllers/adminController');

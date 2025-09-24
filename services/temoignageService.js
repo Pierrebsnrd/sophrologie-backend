@@ -1,4 +1,3 @@
-// services/temoignageService.js
 const Temoignage = require('../models/temoignage');
 
 // Import avec gestion d'erreur
@@ -83,14 +82,14 @@ class TemoignageService {
 
             const savedTemoignage = await temoignage.save();
 
-            // Envoyer notification email admin - OPTIONNEL
+            // Envoyer notification email admin
             if (sendNewTestimonialNotification) {
                 try {
                     await sendNewTestimonialNotification(savedTemoignage);
                     console.log('✅ Notification email envoyée');
                 } catch (emailError) {
                     console.error('⚠️ Erreur envoi email (témoignage sauvé):', emailError);
-                    // Log détaillé pour diagnostiquer
+                    // Log pour diag
                     if (emailError.code) {
                         console.error("Code erreur email:", emailError.code);
                     }

@@ -1,8 +1,3 @@
-// ================================
-// CONFIGURATION OVH EMAIL
-// ================================
-
-// utils/emailService.js - Configuration OVH
 const nodemailer = require('nodemailer');
 
 // Configuration OVH Email

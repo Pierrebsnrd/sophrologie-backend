@@ -1,4 +1,3 @@
-// controllers/temoignageController.js
 const TemoignageService = require('../services/temoignageService');
 const { asyncHandler } = require('../middleware/errorHandler');
 
@@ -33,25 +32,25 @@ class TemoignageController {
 
     static create = asyncHandler(async (req, res) => {
         console.log("Corps reçu :", req.body);
-        const { name, message } = req.body;          // ✅ Seulement name et message
+        const { name, message } = req.body;
         const errors = {};
 
         // Validation nom
-        if (!name || !name.trim()) {                 // ✅ Validation détaillée
+        if (!name || !name.trim()) {
             errors.name = "Veuillez saisir votre nom.";
         } else if (name.trim().length < 2) {
             errors.name = "Le nom doit contenir au moins 2 caractères.";
         }
 
         // Validation message
-        if (!message || !message.trim()) {           // ✅ Validation détaillée
+        if (!message || !message.trim()) {
             errors.message = "Veuillez saisir votre message.";
         } else if (message.trim().length < 10) {
             errors.message = "Le message doit contenir au moins 10 caractères.";
         }
 
         // Si erreurs, renvoyer toutes en une seule fois
-        if (Object.keys(errors).length > 0) {       // ✅ Format errors comme votre code
+        if (Object.keys(errors).length > 0) {
             return res.status(400).json({ success: false, errors });
         }
 

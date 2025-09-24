@@ -1,4 +1,3 @@
-// tests/services/temoignageService.test.js
 const TemoignageService = require('../../services/temoignageService');
 const Temoignage = require('../../models/temoignage');
 

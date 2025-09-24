@@ -98,7 +98,7 @@ async function main() {
         passwordHash: hashedPassword,
         loginCount: 0,
         lastLogin: null,
-        createdAt: new Date() // EXPLICITEMENT défini
+        createdAt: new Date()
       });
       await admin.save();
       console.log(`✅ Compte admin créé avec succès pour: ${email}`);
